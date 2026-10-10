@@ -224,10 +224,12 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
                 yield return (aoe.origin.Position, aoe.origin.Rotation + aoe.offset, aoe.order == order, isMonitor && aoe.order == _playerOrder[slot]);
     }
 
-    // 09STOP spots for boss monitor on the left (west cleave), mirrored for the right: the 09STOP diagram with M2/M3/N3 nudged (<2.5y) so that monitors facing
-    // exactly E/N/S keep ~+-12 degrees of tolerance (strat spots: +-8..11); N1/N4/N5 stay right next to the boss cleave line, as in the strat
-    private static readonly (float x, float z)[] _monitorSpots09STOP = [(8.5f, -11.5f), (13, -8), (13, 5.5f)];
-    private static readonly (float x, float z)[] _otherSpots09STOP = [(1.5f, -17.5f), (-4, -1), (-12.5f, -1.5f), (1.5f, 9), (1.5f, 17)];
+    // 09STOP spots for boss monitor on the left (west cleave), mirrored for the right: the 09STOP diagram with spots nudged (<3.5y) so that everyone is at least
+    // 8.5y apart (hit players explode in 7y circles; the diagram has M1-M2 at 7.8y) and monitors facing exactly E/N/S keep +-11..14 degrees of tolerance
+    // (diagram: +-8..11); N1/N4/N5 stay right next to the boss cleave line, as in the strat
+    private static readonly (float x, float z)[] _monitorSpots09STOP = [(8, -12), (16, -8.5f), (12.5f, 5.5f)];
+    private static readonly (float x, float z)[] _otherSpots09STOP = [(1.5f, -17.5f), (-4, -1), (-13.5f, -1.5f), (1.5f, 9), (1.5f, 17.5f)];
+    private const float _explosionRadius = 7;
 
     private WPos Spot09STOP(bool monitor, int order)
     {
@@ -235,9 +237,19 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         return Module.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
     }
 
-    // 09STOP auto-facing for a monitor, robust to people standing in wrong spots: using actual positions and the current aim of the boss and the other monitors,
-    // pick a cleave direction that (1) doesn't make anyone take two hits, (2) hits the planned pair (M1 -> M2+M3, M2 -> N1+M1, M3 -> N4+N5),
-    // (3) doesn't hit anyone else; among the directions with the lowest cost, take the middle of the range closest to the strat direction (E/W, N, S)
+    // strat cleave direction of a monitor: M1 away from the boss monitor side, M2 north, M3 south
+    private Angle StratCleave09STOP(int order) => order switch
+    {
+        1 => _bossAngle.Rad > 0 ? 90.Degrees() : -90.Degrees(),
+        2 => 180.Degrees(),
+        _ => 0.Degrees()
+    };
+
+    // 09STOP auto-facing for a monitor, as a safety net for people standing in wrong spots. Uses actual positions, but assumes the boss and the other monitors
+    // aim exactly as the strat: their actual facing can't be trusted (it may change right before the snapshot and arrives with network delay).
+    // Every directly hit player explodes in a 7y circle, so a player takes one hit per hit player within 7.5y (7y + hitbox) of them.
+    // Picks a cleave direction that (1) doesn't make anyone take two hits, (2) hits the planned pair (M1 -> M2+M3, M2 -> N1+M1, M3 -> N4+N5),
+    // (3) doesn't hit anyone else; among the directions with the lowest cost, takes the middle of the range closest to the strat direction.
     private (Angle cleave, float halfWidth)? SafestCleave09STOP(int slot)
     {
         var self = Raid[slot];
@@ -252,41 +264,47 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         };
         if (plan.Length == 0)
             return null;
-        var strat = _playerOrder[slot] switch
-        {
-            1 => _bossAngle.Rad > 0 ? 90 : 270,
-            2 => 180,
-            _ => 0
-        };
+        var strat = (int)MathF.Round(StratCleave09STOP(_playerOrder[slot]).Deg + 360) % 360;
 
         List<(int slot, WPos origin, WDir dir)> otherSources = [(-1, _boss.Position, (_boss.Rotation + _bossAngle).ToDirection())];
         foreach (var m in _monitorOrder)
             if (m != slot && Raid[m] is { IsDead: false } monitor)
-                otherSources.Add((m, monitor.Position, (monitor.Rotation + _playerAngles[m]).ToDirection()));
+                otherSources.Add((m, monitor.Position, StratCleave09STOP(_playerOrder[m]).ToDirection()));
 
         // 'maybe hit' is conservative (hitbox touching the edge counts), 'surely hit' requires the hitbox to be fully inside
         static bool maybeHit(WPos origin, WDir dir, WPos p) => (p - origin).Dot(dir) > -1;
         static bool surelyHit(WPos origin, WDir dir, WPos p) => (p - origin).Dot(dir) > 1;
 
-        List<(WPos pos, int otherHits, bool planned)> players = [];
-        foreach (var (s, p) in Raid.WithSlot())
-            if (s != slot && !p.IsDead)
-                players.Add((p.Position, otherSources.Count(src => src.slot != s && maybeHit(src.origin, src.dir, p.Position)), plan.Contains((IsMonitor(s), _playerOrder[s]))));
+        List<(int slot, WPos pos, bool planned)> players = [.. Raid.WithSlot().Where(sp => !sp.Item2.IsDead).Select(sp => (sp.Item1, sp.Item2.Position, plan.Contains((IsMonitor(sp.Item1), _playerOrder[sp.Item1]))))];
+        List<WPos> fixedTargets = [];
+        foreach (var (s, pos, _) in players)
+            foreach (var src in otherSources)
+                if (src.slot != s && maybeHit(src.origin, src.dir, pos))
+                    fixedTargets.Add(pos);
 
+        const float explosionCheck = (_explosionRadius + 0.5f) * (_explosionRadius + 0.5f); // + player hitbox
         var cost = new int[360];
+        List<WPos> targets = [];
         for (var i = 0; i < 360; ++i)
         {
             var dir = i.Degrees().ToDirection();
-            foreach (var (pos, otherHits, planned) in players)
+            targets.Clear();
+            targets.AddRange(fixedTargets);
+            foreach (var (s, pos, planned) in players)
             {
+                if (s == slot)
+                    continue;
                 var maybe = maybeHit(self.Position, dir, pos);
-                if (maybe && otherHits >= 1)
-                    cost[i] += 1000; // double hit = death
+                if (maybe)
+                    targets.Add(pos);
                 if (planned && !surelyHit(self.Position, dir, pos))
                     cost[i] += 10;
                 else if (!planned && maybe)
                     cost[i] += 1;
             }
+            foreach (var (_, pos, _) in players)
+                if (targets.Count(t => (t - pos).LengthSq() < explosionCheck) >= 2)
+                    cost[i] += 1000; // two hits = death
         }
 
         var best = cost.Min();
