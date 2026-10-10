@@ -53,5 +53,8 @@ public partial class TOPConfig
 
         // P5 Delta: outer pairs fix rocket punch colors, 09STOP spots (see P5Delta)
         P5Delta09STOP = true;
+
+        // P5 Sigma: 09STOP line up and spreads (see P5Sigma)
+        P5Sigma09STOP = true;
     }
 }

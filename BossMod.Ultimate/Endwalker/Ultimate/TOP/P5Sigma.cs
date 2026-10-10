@@ -14,6 +14,7 @@ class P5Sigma(BossModule module) : BossComponent(module)
     }
 
     public Glitch ActiveGlitch;
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
     public PlayerState[] Players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { PartnerSlot = -1 });
     private WDir _waveCannonNorthDir;
     private int _numWaveCannonTargets;
@@ -82,13 +83,13 @@ class P5Sigma(BossModule module) : BossComponent(module)
         if (!Raid.TryFindSlot(actor, out var slot))
             return;
 
-        // assuming standard 'blue-purple-orange-green' order
+        // LPDU: 'blue-purple-orange-green' order; 09STOP: 'orange-green-purple-blue', left to right when looking away from the arms
         var order = (IconID)iconID switch
         {
-            IconID.PartySynergyCross => 1,
-            IconID.PartySynergySquare => 2,
-            IconID.PartySynergyCircle => 3,
-            IconID.PartySynergyTriangle => 4,
+            IconID.PartySynergyCross => _config.P5Sigma09STOP ? 4 : 1,
+            IconID.PartySynergySquare => _config.P5Sigma09STOP ? 3 : 2,
+            IconID.PartySynergyCircle => _config.P5Sigma09STOP ? 1 : 3,
+            IconID.PartySynergyTriangle => _config.P5Sigma09STOP ? 2 : 4,
             _ => 0
         };
         if (order > 0)
@@ -127,6 +128,12 @@ class P5Sigma(BossModule module) : BossComponent(module)
 
     private void InitSpreadPositions()
     {
+        if (_config.P5Sigma09STOP)
+        {
+            InitSpreadPositions09STOP();
+            return;
+        }
+
         var northAngle = Angle.FromDirection(_waveCannonNorthDir);
         var waveCannonsPerPair = new BitMask[4];
         for (var i = 0; i < Players.Length; ++i)
@@ -180,7 +187,91 @@ class P5Sigma(BossModule module) : BossComponent(module)
             p.SpreadAngle = p.SpreadAngle.Normalized();
     }
 
-    private IEnumerable<WDir> SafeSpotOffsets(int slot)
+    // 09STOP, 'north' = away from the arms (towards omega M): left double pair - upper N, lower S; right double pair - upper W, lower E;
+    // left single pair - marker behind the left fist (SW), partner NE; right single pair - marker behind the right fist (SE), partner NW
+    private void InitSpreadPositions09STOP()
+    {
+        var north = _waveCannonNorthDir.Normalized();
+        var northAngle = Angle.FromDirection(north);
+        var waveCannonsPerPair = new BitMask[4];
+        for (var i = 0; i < Players.Length; ++i)
+            if (Players[i].WaveCannonTarget && Players[i].Order > 0)
+                waveCannonsPerPair[Players[i].Order - 1].Set(i);
+
+        var nextSingle = 0;
+        var nextDouble = 0;
+        foreach (var mask in waveCannonsPerPair) // in order, i.e. left to right
+        {
+            if (mask.NumSetBits() == 2)
+            {
+                var upper = mask.LowestSetBit();
+                var lower = mask.HighestSetBit();
+                if (north.Dot((Raid[lower]?.Position ?? default) - (Raid[upper]?.Position ?? default)) > 0)
+                    Utils.Swap(ref upper, ref lower);
+                Players[upper].SpreadAngle = nextDouble == 0 ? northAngle : northAngle + 90.Degrees();
+                Players[lower].SpreadAngle = nextDouble == 0 ? northAngle + 180.Degrees() : northAngle - 90.Degrees();
+                ++nextDouble;
+            }
+            else if (mask.Any())
+            {
+                var marker = mask.LowestSetBit();
+                var partner = Players[marker].PartnerSlot;
+                Players[marker].SpreadAngle = nextSingle == 0 ? northAngle + 135.Degrees() : northAngle - 135.Degrees();
+                if (partner >= 0)
+                    Players[partner].SpreadAngle = nextSingle == 0 ? northAngle - 45.Degrees() : northAngle + 45.Degrees();
+                ++nextSingle;
+            }
+        }
+
+        foreach (ref var p in Players.AsSpan())
+            p.SpreadAngle = p.SpreadAngle.Normalized();
+    }
+
+    private IEnumerable<WDir> SafeSpotOffsets(int slot) => _config.P5Sigma09STOP ? SafeSpotOffsets09STOP(slot) : SafeSpotOffsetsLPDU(slot);
+
+    // 09STOP spots, measured from the 09STOP diagrams
+    private IEnumerable<WDir> SafeSpotOffsets09STOP(int slot)
+    {
+        var p = Players[slot];
+        if (_waveCannonNorthDir == default || p.Order == 0)
+            yield break; // no safe spots yet
+
+        var north = _waveCannonNorthDir.Normalized();
+        if (_numWaveCannonTargets < 6)
+        {
+            // two rows between the fists, circle-triangle-square-cross from left
+            var left = p.Order switch
+            {
+                1 => 4.4f,
+                2 => 1.4f,
+                3 => -1.5f,
+                _ => -4.4f
+            };
+            yield return left * north.OrthoL() - 5.7f * north;
+            yield return left * north.OrthoL() - 8.3f * north;
+            yield break;
+        }
+
+        if (!_waveCannonsDone)
+        {
+            // close: in front of the cardinal/intercardinal markers; far: at the edge (single pair partners slightly further in)
+            var offset = (p.SpreadAngle - Angle.FromDirection(north)).Normalized().Abs().Deg;
+            var diagonal = offset is > 20 and < 70 or > 110 and < 160;
+            var hasMarker = p.WaveCannonTarget;
+            var radius = (ActiveGlitch == Glitch.Mid, diagonal, hasMarker) switch
+            {
+                (true, false, _) => 11.5f,
+                (true, true, true) => 12.5f,
+                (true, true, false) => 11.5f,
+                (false, false, _) => 19,
+                (false, true, true) => 19,
+                (false, true, false) => 17.5f,
+            };
+            yield return radius * p.SpreadAngle.ToDirection();
+        }
+    }
+
+    private IEnumerable<WDir> SafeSpotOffsetsLPDU(int slot)
     {
         var p = Players[slot];
         if (_waveCannonNorthDir == default)
@@ -265,8 +356,8 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
     private void InitAssignments()
     {
         var sigma = Module.FindComponent<P5Sigma>();
-        if (sigma == null)
-            return;
+        if (sigma == null || Service.Config.Get<TOPConfig>().P5Sigma09STOP)
+            return; // assignments below are LPDU-specific
 
         WDir relNorth = default;
         foreach (var t in Towers)
@@ -404,7 +495,7 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
 
     private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
     {
-        if (_lasers == null) // note: we assume StartingDir is relative south, Rotation is +- 9 degrees
+        if (_lasers == null || Service.Config.Get<TOPConfig>().P5Sigma09STOP) // note: we assume StartingDir is relative south, Rotation is +- 9 degrees; LPDU-specific spots
             yield break;
 
         if (actor == NearWorld)

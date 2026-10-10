@@ -21,6 +21,8 @@ static partial class LocKorean
         ("09STOP (HHTTDDDD)", "09STOP (HHTTDDDD)"),
         ("09STOP (TRHM)", "09STOP (TRHM)"),
         ("P5 Delta: layout", "P5 델타: 배치"),
+        ("P5 Sigma: layout", "P5 시그마: 배치"),
+        ("09STOP: line up between the arms (circle, triangle, square, cross from left), left double pair N/S, right double pair W/E, single pairs at their fist.\nTower and Hello World spots are not shown for 09STOP yet.", "09STOP: 아카이브 암 사이에 왼쪽부터 동그라미, 세모, 네모, 엑스로 정렬하고, 징 2개 왼쪽 조는 12시/6시, 오른쪽 조는 9시/3시, 징 1개 조는 각자 주먹 쪽으로 산개합니다.\n탑과 헬로월드 자리는 09STOP에서 아직 표시하지 않습니다."),
         ("LPDU", "LPDU"),
         ("09STOP", "09STOP"),
         ("P3 Monitors: layout", "P3 모니터: 배치"),
