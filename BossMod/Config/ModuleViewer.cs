@@ -151,7 +151,7 @@ public sealed class ModuleViewer : IDisposable
     private void DrawFilters()
     {
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Search:");
+        ImGui.Text(Loc.Tr("Search:"));
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
         DrawSearchBar();
@@ -169,7 +169,7 @@ public sealed class ModuleViewer : IDisposable
         ImGui.TextUnformatted(label);
         ImGui.Separator();
         using var _ = ImRaii.Table(label, 2, ImGuiTableFlags.SizingStretchProp);
-        ImGui.TableSetupColumn("icon", ImGuiTableColumnFlags.WidthFixed, _iconSize.X);
+        ImGui.TableSetupColumn(Loc.Tr("icon"), ImGuiTableColumnFlags.WidthFixed, _iconSize.X);
         drawTable.Invoke();
     }
 
@@ -180,7 +180,7 @@ public sealed class ModuleViewer : IDisposable
         if (ImGui.IsItemHovered() && !ImGui.IsItemFocused())
         {
             ImGui.BeginTooltip();
-            ImGui.Text("Type here to search for any specific instance by its respective title.");
+            ImGui.Text(Loc.Tr("Type here to search for any specific instance by its respective title."));
             ImGui.EndTooltip();
         }
     }
@@ -201,11 +201,11 @@ public sealed class ModuleViewer : IDisposable
                 shiftRmb: () => ToggleFocus(ref _filterExpansions, bit),
                 context: () =>
                 {
-                    if (ImGui.MenuItem($"Hide expansion", "LMB", selected: _filterExpansions[bit]))
+                    if (ImGui.MenuItem(Loc.Tr($"Hide expansion"), "LMB", selected: _filterExpansions[bit]))
                         _filterExpansions.Toggle(bit);
 
                     var isFocused = _filterExpansions == ~BitMask.Build(bit);
-                    if (ImGui.MenuItem($"Hide other expansions", "Shift + RMB", selected: isFocused))
+                    if (ImGui.MenuItem(Loc.Tr($"Hide other expansions"), "Shift + RMB", selected: isFocused))
                         ToggleFocus(ref _filterExpansions, bit);
                 }
             );
@@ -232,16 +232,16 @@ public sealed class ModuleViewer : IDisposable
                 shiftRmb: () => ToggleFocus(ref _filterCategories, bit),
                 context: () =>
                 {
-                    if (ImGui.MenuItem($"Hide category", "LMB", selected: _filterCategories[bit]))
+                    if (ImGui.MenuItem(Loc.Tr($"Hide category"), "LMB", selected: _filterCategories[bit]))
                         _filterCategories.Toggle(bit);
 
                     var isFocused = _filterCategories == ~BitMask.Build(bit);
-                    if (ImGui.MenuItem($"Hide other categories", "Shift + RMB", selected: isFocused))
+                    if (ImGui.MenuItem(Loc.Tr($"Hide other categories"), "Shift + RMB", selected: isFocused))
                         ToggleFocus(ref _filterCategories, bit);
 
                     ImGui.Separator();
 
-                    if (ImGui.MenuItem("Disable all modules in this category", "", isDisabledCategory))
+                    if (ImGui.MenuItem(Loc.Tr("Disable all modules in this category"), "", isDisabledCategory))
                     {
                         modified = true;
                         if (isDisabledCategory)
@@ -305,7 +305,7 @@ public sealed class ModuleViewer : IDisposable
         }
 
         if (ImGui.IsItemHovered() && disabled)
-            ImGui.SetTooltip("All modules in this category are disabled. Individual module settings are ignored.");
+            ImGui.SetTooltip(Loc.Tr("All modules in this category are disabled. Individual module settings are ignored."));
         if (ImGui.IsItemClicked())
             click?.Invoke();
         if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && shift)
@@ -321,7 +321,7 @@ public sealed class ModuleViewer : IDisposable
     private void DrawModules(UITree tree, WorldState ws)
     {
         using var table = ImRaii.Table("ModulesTable", 2, ImGuiTableFlags.RowBg);
-        ImGui.TableSetupColumn("icons", ImGuiTableColumnFlags.WidthFixed, _iconSize.X * 2 + ImGui.GetStyle().FramePadding.X * 2);
+        ImGui.TableSetupColumn(Loc.Tr("icons"), ImGuiTableColumnFlags.WidthFixed, _iconSize.X * 2 + ImGui.GetStyle().FramePadding.X * 2);
         if (!table)
             return;
 
@@ -466,7 +466,7 @@ public sealed class ModuleViewer : IDisposable
         {
             foreach (var plan in plans.Plans)
             {
-                if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
+                if (ImGui.Selectable(Loc.Tr($"Edit {cls} '{plan.Name}' ({plan.Guid})")))
                 {
                     UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
                 }
@@ -476,12 +476,12 @@ public sealed class ModuleViewer : IDisposable
         if (Service.IsMock)
         {
             foreach (var cls in supportedClasses)
-                if (ImGui.Selectable($"New plan for {cls}..."))
+                if (ImGui.Selectable(Loc.Tr($"New plan for {cls}...")))
                     CreateForClass(info, mplans, cls);
         }
         else if (_ws.Party.Player() is { } player)
         {
-            if (ImGui.Selectable($"New plan for {player.Class}..."))
+            if (ImGui.Selectable(Loc.Tr($"New plan for {player.Class}...")))
                 CreateForClass(info, mplans, player.Class);
         }
     }

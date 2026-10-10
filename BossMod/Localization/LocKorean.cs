@@ -4,7 +4,7 @@
 // To find strings that still need a translation: python scripts/loc_extract.py [--hints <module dir>]
 static partial class LocKorean
 {
-    public static IEnumerable<(string en, string ko)> Entries => [.. Manual, .. Core, .. Modules, .. Ultimate];
+    public static IEnumerable<(string en, string ko)> Entries => [.. Manual, .. Core, .. Modules, .. Ultimate, .. UI];
 
     // strings passed to Loc.Tr directly from code (not picked up by the extractor)
     private static readonly (string, string)[] Manual =

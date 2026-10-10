@@ -57,7 +57,7 @@ public sealed class UIRotationWindow : UIWindow
         var activeModule = _mgr.Bossmods.ActiveModule;
         if (activeModule != null)
         {
-            ImGui.TextUnformatted($"CD Plan:");
+            ImGui.TextUnformatted(Loc.Tr($"CD Plan:"));
 
             if (activeModule.Info?.PlanLevel > 0)
             {
@@ -91,7 +91,7 @@ public sealed class UIRotationWindow : UIWindow
             }
         }
 
-        ImGui.TextUnformatted("Modules: ");
+        ImGui.TextUnformatted(Loc.Tr("Modules: "));
 
         var dups = _mgr.DuplicateModules.ToList();
         if (dups.Count > 0)
@@ -109,7 +109,7 @@ public sealed class UIRotationWindow : UIWindow
             if (ImGui.IsItemHovered())
             {
                 using var tooltip = ImRaii.Tooltip();
-                ImGui.TextUnformatted("Transient strategies:");
+                ImGui.TextUnformatted(Loc.Tr("Transient strategies:"));
                 foreach (var p in _mgr.Presets)
                 {
                     foreach (var m in p.Modules.Where(m => m.TransientSettings.Count > 0))
@@ -144,7 +144,7 @@ public sealed class UIRotationWindow : UIWindow
         if (mgr.Player == null)
             return modified;
 
-        ImGui.TextUnformatted("Presets:");
+        ImGui.TextUnformatted(Loc.Tr("Presets:"));
 
         ImGui.SameLine();
 
@@ -152,7 +152,7 @@ public sealed class UIRotationWindow : UIWindow
         using (ImRaii.PushColor(ImGuiCol.ButtonHovered, 0xff000050, mgr.IsForceDisabled))
         using (ImRaii.PushColor(ImGuiCol.ButtonActive, 0xff000060, mgr.IsForceDisabled))
         {
-            if (ImGui.Button("Disabled"))
+            if (ImGui.Button(Loc.Tr("Disabled")))
             {
                 if (mgr.IsForceDisabled)
                     mgr.Clear();

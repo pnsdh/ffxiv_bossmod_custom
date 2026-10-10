@@ -142,22 +142,22 @@ public class BossModuleMainWindow : UIWindow
 
     private void DrawRadarClosePopup()
     {
-        ImGui.Text("What would you like to do?");
+        ImGui.Text(Loc.Tr("What would you like to do?"));
 
-        if (ImGui.RadioButton("Hide the radar window", _beh == RadarCloseBehavior.DisableRadar))
+        if (ImGui.RadioButton(Loc.Tr("Hide the radar window"), _beh == RadarCloseBehavior.DisableRadar))
             _beh = RadarCloseBehavior.DisableRadar;
-        if (ImGui.RadioButton($"Disable the current module (currently: {_mgr.ActiveModule})", _beh == RadarCloseBehavior.DisableActiveModule))
+        if (ImGui.RadioButton(Loc.Tr($"Disable the current module (currently: {_mgr.ActiveModule})"), _beh == RadarCloseBehavior.DisableActiveModule))
             _beh = RadarCloseBehavior.DisableActiveModule;
         if (ImGui.RadioButton($"Disable the current category (currently: {_mgr.ActiveModule?.Info?.Category.ToString() ?? "unknown"})", _beh == RadarCloseBehavior.DisableActiveModuleCategory))
             _beh = RadarCloseBehavior.DisableActiveModuleCategory;
 
         ImGui.Dummy(new(0, 15));
 
-        ImGui.Checkbox("Remember my choice", ref _rememberCloseChoice);
+        ImGui.Checkbox(Loc.Tr("Remember my choice"), ref _rememberCloseChoice);
 
         ImGui.Dummy(new(0, 15));
 
-        if (ImGui.Button("OK"))
+        if (ImGui.Button(Loc.Tr("OK")))
         {
             if (_rememberCloseChoice)
             {
@@ -170,7 +170,7 @@ public class BossModuleMainWindow : UIWindow
             _rememberCloseChoice = false;
         }
         ImGui.SameLine();
-        if (ImGui.Button("Cancel"))
+        if (ImGui.Button(Loc.Tr("Cancel")))
         {
             _beh = default;
             _rememberCloseChoice = false;

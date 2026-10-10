@@ -30,11 +30,11 @@ class AIMigrationNotice : ChangelogNotice
     public override void Draw()
     {
         var link = "https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide";
-        ImGui.TextUnformatted("AI is dead, long live AI!");
+        ImGui.TextUnformatted(Loc.Tr("AI is dead, long live AI!"));
         Bullet("AI feature is now deprecated and will be removed in one of the future versions.");
         Bullet("The replacement is simple and much more flexible and powerful.");
         Bullet($"See wiki ({link}) for details.");
-        if (ImGui.Button("Open wiki"))
+        if (ImGui.Button(Loc.Tr("Open wiki")))
         {
             try
             {
@@ -54,7 +54,7 @@ class MultiPresetNotice : ChangelogNotice
 
     public override void Draw()
     {
-        ImGui.TextWrapped("You can now enable multiple presets at once.");
+        ImGui.TextWrapped(Loc.Tr("You can now enable multiple presets at once."));
         Bullet("A new built-in preset has been added - VBM AI. This provides the same functionality as the legacy AI feature. It will try to dodge AOEs and automatically target enemies.");
         Bullet("The existing /vbm ar commands have unchanged behavior. For example, /vbm ar set <preset> will enable the given preset and disable all others. To use multi-preset functionality, you can use the new subcommands 'activate', 'deactivate', and 'togglemulti'.");
     }
@@ -66,7 +66,7 @@ class DashSafetyNotice : ChangelogNotice
 
     public override void Draw()
     {
-        ImGui.TextWrapped($"The option \"Try to prevent dashing into AOEs\" is now enabled by default. You can disable it in Settings -> Action Tweaks.");
+        ImGui.TextWrapped(Loc.Tr($"The option \"Try to prevent dashing into AOEs\" is now enabled by default. You can disable it in Settings -> Action Tweaks."));
     }
 }
 
@@ -77,10 +77,10 @@ class AIMigrationNotice2 : ChangelogNotice
     public override void Draw()
     {
         var link = "https://github.com/awgil/ffxiv_bossmod/wiki/AI-Migration-guide";
-        ImGui.TextWrapped("Legacy AI has been replaced by VBM AI.");
+        ImGui.TextWrapped(Loc.Tr("Legacy AI has been replaced by VBM AI."));
         Bullet("If you're a legacy AI user, you don't need to do anything! The existing AI interface has been retained for compatibility.");
         Bullet($"For more information, see {link}.");
-        if (ImGui.Button("Open wiki"))
+        if (ImGui.Button(Loc.Tr("Open wiki")))
         {
             try
             {
@@ -100,7 +100,7 @@ class SmartRotationNotice : ChangelogNotice
 
     public override void Draw()
     {
-        ImGui.TextWrapped("'Smart character orientation' has been changed to be enabled by default. You can disable it in Settings -> Action Tweaks.");
+        ImGui.TextWrapped(Loc.Tr("'Smart character orientation' has been changed to be enabled by default. You can disable it in Settings -> Action Tweaks."));
     }
 }
 
@@ -114,20 +114,20 @@ class ArenaScaleNotice : ChangelogNotice
     public override void Draw()
     {
         var scale = ImGuiHelpers.GlobalScale;
-        ImGui.TextWrapped("The VBM radar now respects your global Dalamud UI scale.");
+        ImGui.TextWrapped(Loc.Tr("The VBM radar now respects your global Dalamud UI scale."));
         if (scale == 1)
         {
-            ImGui.TextWrapped("You're using a global scale of 100%, so this won't change anything.");
+            ImGui.TextWrapped(Loc.Tr("You're using a global scale of 100%, so this won't change anything."));
         }
         else if (_adjusted)
         {
-            ImGui.Text("Settings have been saved.");
+            ImGui.Text(Loc.Tr("Settings have been saved."));
         }
         else
         {
-            ImGui.TextWrapped($"Your saved radar scale was {_bmc.ArenaScale:f2}, which is now {_bmc.ArenaScale * scale:f2} when global scaling is applied.");
-            ImGui.TextWrapped($"For the radar to be the same size as it was before this update, you should set it to {_bmc.ArenaScale / scale:f2}.");
-            if (ImGui.Button("Set it for me"))
+            ImGui.TextWrapped(Loc.Tr($"Your saved radar scale was {_bmc.ArenaScale:f2}, which is now {_bmc.ArenaScale * scale:f2} when global scaling is applied."));
+            ImGui.TextWrapped(Loc.Tr($"For the radar to be the same size as it was before this update, you should set it to {_bmc.ArenaScale / scale:f2}."));
+            if (ImGui.Button(Loc.Tr("Set it for me")))
             {
                 _bmc.ArenaScale /= scale;
                 _bmc.Modified.Fire();
@@ -143,12 +143,12 @@ class MacroNotice : ChangelogNotice
 
     public override void Draw()
     {
-        ImGui.Text("You can now use");
+        ImGui.Text(Loc.Tr("You can now use"));
         ImGui.SameLine();
         using (ImRaii.PushFont(Service.MonoFont))
-            ImGui.Text("/vbm macro");
+            ImGui.Text(Loc.Tr("/vbm macro"));
         ImGui.SameLine();
-        ImGui.Text("in your macros to enable custom queueing for the duration of the macro.");
+        ImGui.Text(Loc.Tr("in your macros to enable custom queueing for the duration of the macro."));
     }
 }
 
@@ -181,7 +181,7 @@ public class ConfigChangelogWindow : UIWindow
 
     public override void Draw()
     {
-        ImGui.TextUnformatted($"The following config options have been added since version {PreviousVersion}:");
+        ImGui.TextUnformatted(Loc.Tr($"The following config options have been added since version {PreviousVersion}:"));
 
         ImGui.Separator();
 
@@ -191,7 +191,7 @@ public class ConfigChangelogWindow : UIWindow
         {
             using var id = ImRaii.PushId($"notice{n.GetType()}");
             n.Draw();
-            if (ImGui.Button("OK"))
+            if (ImGui.Button(Loc.Tr("OK")))
                 postIteration += () => Acknowledge(n);
 
             ImGui.Separator();
@@ -212,10 +212,10 @@ public class ConfigChangelogWindow : UIWindow
                 ImGui.SameLine();
                 ImGui.TextUnformatted(disp?.Label ?? "unknown");
                 ImGui.SameLine();
-                if (ImGui.Button("Enable"))
+                if (ImGui.Button(Loc.Tr("Enable")))
                     postIteration += () => SetOption(f, true);
                 ImGui.SameLine();
-                if (ImGui.Button("Disable"))
+                if (ImGui.Button(Loc.Tr("Disable")))
                     postIteration += () => SetOption(f, false);
             }
         }

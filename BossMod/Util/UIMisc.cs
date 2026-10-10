@@ -18,7 +18,7 @@ public static class UIMisc
             using var tooltip = ImRaii.Tooltip();
             foreach (var d in disabled)
                 if (d.disabled)
-                    ImGui.TextUnformatted(d.reason);
+                    ImGui.TextUnformatted(Loc.Tr(d.reason));
         }
         return res;
     }

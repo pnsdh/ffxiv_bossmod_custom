@@ -198,6 +198,39 @@ def collect_hints(path, rel, found):
             found.append((unescape(lm.group()), 'hint', rel))
 
 
+UI_CALLS = [
+    re.compile(r'Loc\.Tr\(\s*(?=\$?")'),  # explicit translation calls in UI code
+    re.compile(r'_tabs\.Add\(\s*(?=")'),  # UITabs names
+]
+UIMISC_BUTTON = re.compile(r'UIMisc\.(?:Button|DangerousButton)\(')
+
+
+def read_literal_at(text, i):
+    if text[i] == '$':
+        lit = read_interpolated(text, i)
+        return interp_to_pattern(lit) if lit else None
+    lm = re.match(r'"(?:[^"\\]|\\.)*"', text[i:])
+    return unescape(lm.group()) if lm else None
+
+
+def collect_ui(path, rel, found):
+    text = path.read_text(encoding='utf-8-sig')
+    for rx in UI_CALLS:
+        for m in rx.finditer(text):
+            s = read_literal_at(text, m.end())
+            if s:
+                found.append((s, 'ui', rel))
+    # UIMisc.Button disabled reasons: every string literal argument after the label
+    toks = list(tokens(text))
+    for i, (k, v, pos) in enumerate(toks):
+        if k == 'ident' and v in ('Button', 'DangerousButton') and i >= 1 and toks[i - 1][1] == 'UIMisc' and toks[i + 1][1] == '(':
+            args, _ = balanced_args(toks, i + 1)
+            for _, a in split_args(args)[1:]:
+                for t in a:
+                    if t[0] == 'str':
+                        found.append((unescape(t[1]), 'ui', rel))
+
+
 def known_translations():
     known = {}
     pair = re.compile(r'\(\s*("(?:[^"\\]|\\.)*")\s*,\s*("(?:[^"\\]|\\.)*")\s*\)')
@@ -220,6 +253,10 @@ def main():
             if 'obj' in f.parts or 'bin' in f.parts:
                 continue
             collect_config(f, f.relative_to(ROOT).as_posix(), found)
+    for f in sorted((ROOT / 'BossMod').rglob('*.cs')):
+        if 'obj' in f.parts or 'bin' in f.parts or 'Localization' in f.parts:
+            continue
+        collect_ui(f, f.relative_to(ROOT).as_posix(), found)
     for d in args.hints:
         for f in sorted((ROOT / d).rglob('*.cs')):
             collect_hints(f, f.relative_to(ROOT).as_posix(), found)

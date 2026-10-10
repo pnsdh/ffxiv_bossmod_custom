@@ -95,12 +95,12 @@ public sealed class ConfigUI : IDisposable
     private void DrawSettings()
     {
         ImGui.SetNextItemWidth(300);
-        if (ImGui.InputTextEx("", "Search for a setting...", ref _searchText))
+        if (ImGui.InputTextEx("", Loc.Tr("Search for a setting..."), ref _searchText))
             FilterNodes();
 
         ImGui.SameLine();
         using (ImRaii.Disabled(_searchText.Length == 0))
-            if (ImGui.Button("Clear"))
+            if (ImGui.Button(Loc.Tr("Clear")))
             {
                 _searchText = "";
                 FilterNodes();
@@ -460,7 +460,7 @@ public sealed class ConfigUI : IDisposable
                 ImGui.TextUnformatted(help);
                 ImGui.Separator();
             }
-            ImGui.TextUnformatted("Click to select a preset");
+            ImGui.TextUnformatted(Loc.Tr("Click to select a preset"));
             ImGui.EndTooltip();
         }
         ImGui.SameLine();
@@ -511,7 +511,7 @@ public sealed class ConfigUI : IDisposable
             foreach (var n in group.Names)
                 ImGui.TableSetupColumn(n);
             ImGui.TableSetupColumn("----");
-            ImGui.TableSetupColumn("Name");
+            ImGui.TableSetupColumn(Loc.Tr("Name"));
             ImGui.TableHeadersRow();
 
             var assignments = root.Get<PartyRolesConfig>().SlotsPerAssignment(ws.Party);
