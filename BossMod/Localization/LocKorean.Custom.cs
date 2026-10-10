@@ -19,6 +19,7 @@ static partial class LocKorean
 
         ("09STOP (HTTDDDDH)", "09STOP (HTTDDDDH)"),
         ("09STOP (HHTTDDDD)", "09STOP (HHTTDDDD)"),
+        ("09STOP (TRHM)", "09STOP (TRHM)"),
         ("P3 Monitors: layout", "P3 모니터: 배치"),
         ("Monitors on the boss monitor side (LPDU/NA, see the option below)", "모니터 대상이 보스 모니터 쪽 (LPDU/NA, 아래 옵션 참고)"),
         ("09STOP: monitors on the opposite side, M1 away from the boss / M2 north / M3 south", "09STOP: 모니터 대상이 반대편, 모니터1은 보스 반대쪽 / 모니터2는 북 / 모니터3은 남으로 유도"),

@@ -85,5 +85,6 @@ public partial class TOPConfig() : ConfigNode()
     [PropertyDisplay("P4 Wave Cannon: priority, from North to South (assuming south flex)")]
     [GroupDetails(["W1", "E1", "W2", "E2", "W3", "E3", "W4", "E4"])]
     [GroupPreset("LPDU (TRHM)", [0, 1, 4, 5, 6, 7, 2, 3])]
+    [GroupPreset("09STOP (TRHM)", [0, 1, 4, 5, 6, 7, 2, 3])]
     public GroupAssignmentUnique P4WaveCannonAssignments = new() { Assignments = [0, 1, 4, 5, 6, 7, 2, 3] };
 }
