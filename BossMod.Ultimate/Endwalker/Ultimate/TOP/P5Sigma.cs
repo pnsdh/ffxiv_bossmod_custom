@@ -254,19 +254,8 @@ class P5Sigma(BossModule module) : BossComponent(module)
 
         if (!_waveCannonsDone)
         {
-            // close: in front of the cardinal/intercardinal markers; far: at the edge (single pair partners slightly further in)
-            var offset = (p.SpreadAngle - Angle.FromDirection(north)).Normalized().Abs().Deg;
-            var diagonal = offset is > 20 and < 70 or > 110 and < 160;
-            var hasMarker = p.WaveCannonTarget;
-            var radius = (ActiveGlitch == Glitch.Mid, diagonal, hasMarker) switch
-            {
-                (true, false, _) => 11.5f,
-                (true, true, true) => 12.5f,
-                (true, true, false) => 11.5f,
-                (false, false, _) => 19,
-                (false, true, true) => 19,
-                (false, true, false) => 17.5f,
-            };
+            // everyone at the same distance from the center: close - in front of the floor markers, far - hugging the arena edge (radius 20 - hitbox)
+            var radius = ActiveGlitch == Glitch.Mid ? 11.5f : 19.5f;
             yield return radius * p.SpreadAngle.ToDirection();
         }
     }
