@@ -311,11 +311,11 @@ class P5Delta(BossModule module) : BossComponent(module)
             if (p.IsLocal)
             {
                 if (p.PairAssignment == PairAssignment.Outer)
-                    yield return TransformRelNorth(8.5f, 15.8f * safeDirZ); // both outer greens meet outside the final-side number marker to break the tether
+                    yield return TransformRelNorth(9, 16.7f * safeDirZ); // both outer greens meet at the edge, 2 cells from the final-side number marker away from the cannon, to break the tether
                 else if (p.SideAssignment == SideAssignment.South)
                     yield return TransformRelNorth(-18.9f, 1.8f * safeDirZ); // inner green from omega's left rotates CW to omega, as close to the safe side as possible
                 else
-                    yield return TransformRelNorth(14.6f, 10.5f * safeDirZ); // inner green from omega's right rotates CW past final omega, 2.5 cells outside the number marker
+                    yield return TransformRelNorth(15.4f, 11.1f * safeDirZ); // inner green from omega's right rotates CW past final omega, at the edge 2.5 cells from the number marker towards the cannon
             }
             else if (_distantWorld == Raid[slot])
             {
