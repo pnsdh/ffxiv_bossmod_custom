@@ -378,7 +378,7 @@ public abstract class BossModule : IDisposable
         using var color = ImRaii.PushColor(ImGuiCol.Text, 0xffffff00);
         foreach (var hint in hints)
         {
-            Utils.TextOutlined(hint, ActualShadowColor);
+            Utils.TextOutlined(Loc.Tr(hint), ActualShadowColor);
             ImGui.SameLine();
         }
         ImGui.NewLine();
@@ -389,7 +389,7 @@ public abstract class BossModule : IDisposable
         foreach ((var hint, var risk) in hints)
         {
             using var color = ImRaii.PushColor(ImGuiCol.Text, risk ? ArenaColor.Danger : ArenaColor.Safe);
-            Utils.TextOutlined(hint, ActualShadowColor);
+            Utils.TextOutlined(Loc.Tr(hint), ActualShadowColor);
             ImGui.SameLine();
         }
         ImGui.NewLine();

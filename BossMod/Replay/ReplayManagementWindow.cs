@@ -73,7 +73,7 @@ public class ReplayManagementWindow : UIWindow
 
     public override void Draw()
     {
-        if (ImGui.Button(!IsRecording() ? "Start recording" : "Stop recording"))
+        if (ImGui.Button(Loc.Tr(!IsRecording() ? "Start recording" : "Stop recording")))
         {
             if (!IsRecording())
             {
@@ -90,7 +90,7 @@ public class ReplayManagementWindow : UIWindow
         {
             ImGui.InputText("###msg", ref _message, 1024);
             ImGui.SameLine();
-            if (ImGui.Button("Add log marker") && _message.Length > 0)
+            if (ImGui.Button(Loc.Tr("Add log marker")) && _message.Length > 0)
             {
                 _ws.Execute(new WorldState.OpUserMarker(_message));
                 _message = "";
@@ -98,11 +98,11 @@ public class ReplayManagementWindow : UIWindow
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Open Replay Folder") && _logDir != null)
+        if (ImGui.Button(Loc.Tr("Open Replay Folder")) && _logDir != null)
             _lastErrorMessage = OpenDirectory(_logDir);
 
         ImGui.SameLine();
-        if (ImGui.Button("Cull Options"))
+        if (ImGui.Button(Loc.Tr("Cull Options")))
             _showCull ^= true;
 
         if (_lastErrorMessage.Length > 0)
@@ -129,7 +129,7 @@ public class ReplayManagementWindow : UIWindow
         var totalBytes = _cullFiles.Sum(f => f.File.Exists ? f.File.Length : 0);
         var hasFilter = _cullMaxDurationSec > 0 || _cullDutyKey.Length > 0;
 
-        if (ImGui.Button("Refresh"))
+        if (ImGui.Button(Loc.Tr("Refresh")))
         {
             _cullFiles = ReplayFileMeta.Scan(_logDir);
             _cullStatus = "";
@@ -137,16 +137,16 @@ public class ReplayManagementWindow : UIWindow
         ImGui.SameLine();
         using (ImRaii.Disabled(matching.Count == 0 || !hasFilter))
         {
-            if (UIMisc.DangerousButton("Delete matching"))
+            if (UIMisc.DangerousButton(Loc.Tr("Delete matching")))
                 DeleteMatching(matching);
         }
         if (!hasFilter && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
-            ImGui.SetTooltip("Set a duration threshold and/or select a duty");
+            ImGui.SetTooltip(Loc.Tr("Set a duration threshold and/or select a duty"));
 
-        ImGui.Text($"Replays: {_cullFiles.Count} files, {totalBytes / (1024.0 * 1024.0):f1} MiB | Matched: {matching.Count}");
+        ImGui.Text(Loc.Tr($"Replays: {_cullFiles.Count} files, {totalBytes / (1024.0 * 1024.0):f1} MiB | Matched: {matching.Count}"));
 
         ImGui.SetNextItemWidth(100);
-        ImGui.InputFloat("Shorter than (seconds)", ref _cullMaxDurationSec);
+        ImGui.InputFloat(Loc.Tr("Shorter than (seconds)"), ref _cullMaxDurationSec);
         if (_cullMaxDurationSec < 0)
             _cullMaxDurationSec = 0;
 
@@ -160,7 +160,7 @@ public class ReplayManagementWindow : UIWindow
         {
             if (combo)
             {
-                if (ImGui.Selectable("(any duty)", _cullDutyKey.Length == 0))
+                if (ImGui.Selectable(Loc.Tr("(any duty)"), _cullDutyKey.Length == 0))
                     _cullDutyKey = "";
                 foreach (var d in dutyKeys)
                 {
@@ -201,7 +201,7 @@ public class ReplayManagementWindow : UIWindow
 
         _manager.UnloadPaths(deleted);
         _cullFiles = ReplayFileMeta.Scan(_logDir);
-        _cullStatus = failed == 0 ? $"Deleted {deleted.Count} file(s)." : $"Deleted {deleted.Count} file(s), {failed} failed.";
+        _cullStatus = Loc.Tr(failed == 0 ? $"Deleted {deleted.Count} file(s)." : $"Deleted {deleted.Count} file(s), {failed} failed.");
     }
 
     public bool IsRecording() => _recorder != null;
@@ -211,7 +211,7 @@ public class ReplayManagementWindow : UIWindow
         SetVisible(false);
     }
 
-    private void UpdateTitle() => WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
+    private void UpdateTitle() => WindowName = Loc.Tr(_recorder != null ? "Replay recording: in progress..." : "Replay recording: idle") + _windowID;
 
     public bool ShouldAutoRecord => _config.AutoRecord && (_config.AutoARR || !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]);
 

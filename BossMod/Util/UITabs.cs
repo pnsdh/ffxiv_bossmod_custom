@@ -23,7 +23,7 @@ public sealed class UITabs
         if (!tabs)
             return;
         foreach (var t in _tabs)
-            using (var tab = ImRaii.TabItem(t.Name, t.Name == _forceSelect ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
+            using (var tab = ImRaii.TabItem($"{Loc.Tr(t.Name)}###{t.Name}", t.Name == _forceSelect ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
                 if (tab)
                     t.Tab();
         _forceSelect = "";

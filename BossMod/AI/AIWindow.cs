@@ -46,7 +46,7 @@ internal sealed class AIWindow : UIWindow
         {
             if (leaderCombo)
             {
-                if (ImGui.Selectable("<disabled>", _masterSlot == -1))
+                if (ImGui.Selectable(Loc.Tr("<disabled>"), _masterSlot == -1))
                     SetSlot(-1);
                 foreach (var (i, p) in _manager.WorldState.Party.WithSlot(true))
                     if (ImGui.Selectable(p.Name, _masterSlot == i))
@@ -54,10 +54,10 @@ internal sealed class AIWindow : UIWindow
             }
         }
 
-        if (ImGui.Checkbox("Disable movement", ref _config.ForbidMovement))
+        if (ImGui.Checkbox(Loc.Tr("Disable movement"), ref _config.ForbidMovement))
             _config.Modified.Fire();
 
-        if (ImGui.Checkbox("Disable auto-target", ref _config.ForbidActions))
+        if (ImGui.Checkbox(Loc.Tr("Disable auto-target"), ref _config.ForbidActions))
             _config.Modified.Fire();
     }
 

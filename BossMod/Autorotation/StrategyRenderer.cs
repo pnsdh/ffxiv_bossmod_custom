@@ -7,9 +7,9 @@ public class TargetingRenderer : TrackRenderer
 {
     public override void DrawLabel(StrategyContext context, StrategyConfig config)
     {
-        ImGui.Text("Targeting");
+        ImGui.Text(Loc.Tr("Targeting"));
         ImGui.SameLine();
-        UIMisc.HelpMarker("These settings only affect what the rotation module chooses to use actions on. Regardless of which one you choose, this module will not change your in-game target ('hard target').\n\nFor a module that will automatically change your hard target, use AI -> Automatic targeting.");
+        UIMisc.HelpMarker(Loc.Tr("These settings only affect what the rotation module chooses to use actions on. Regardless of which one you choose, this module will not change your in-game target ('hard target').\n\nFor a module that will automatically change your hard target, use AI -> Automatic targeting."));
     }
 
     public override bool DrawValue(StrategyContext context, StrategyConfigTrack config, ref StrategyValueTrack value)
@@ -21,12 +21,12 @@ public class TargetingRenderer : TrackRenderer
         var forcepri = opt == Targeting.AutoPrimary;
         var trypri = forcepri || opt == Targeting.AutoTryPri;
 
-        if (ImGui.RadioButton("Use player's target", opt == Targeting.Manual))
+        if (ImGui.RadioButton(Loc.Tr("Use player's target"), opt == Targeting.Manual))
         {
             value.Option = 0;
             modified = true;
         }
-        if (ImGui.RadioButton("Automatically pick best target", opt != Targeting.Manual))
+        if (ImGui.RadioButton(Loc.Tr("Automatically pick best target"), opt != Targeting.Manual))
         {
             if (opt != Targeting.Auto)
             {
@@ -37,14 +37,14 @@ public class TargetingRenderer : TrackRenderer
         using (ImRaii.Disabled(opt == Targeting.Manual))
         {
             ImGui.Indent();
-            if (ImGui.Checkbox("Make sure player's target is hit", ref trypri))
+            if (ImGui.Checkbox(Loc.Tr("Make sure player's target is hit"), ref trypri))
             {
                 value.Option = trypri ? 3 : 1;
                 modified = true;
             }
             using (ImRaii.Disabled(!trypri))
             {
-                if (ImGui.Checkbox("Do nothing if the player doesn't have a target", ref forcepri))
+                if (ImGui.Checkbox(Loc.Tr("Do nothing if the player doesn't have a target"), ref forcepri))
                 {
                     value.Option = forcepri ? 2 : 3;
                     modified = true;
@@ -70,7 +70,7 @@ public class DefaultOnRenderer : TrackRenderer
     {
         var enabled = value.Option == 0;
 
-        if (ImGui.Checkbox("Enabled", ref enabled))
+        if (ImGui.Checkbox(Loc.Tr("Enabled"), ref enabled))
         {
             value.Option = enabled ? 0 : 1;
             return true;
@@ -86,7 +86,7 @@ public class DefaultOffRenderer : TrackRenderer
     {
         var enabled = value.Option == 1;
 
-        if (ImGui.Checkbox("Enabled", ref enabled))
+        if (ImGui.Checkbox(Loc.Tr("Enabled"), ref enabled))
         {
             value.Option = enabled ? 1 : 0;
             return true;

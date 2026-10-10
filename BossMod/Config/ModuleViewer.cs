@@ -53,7 +53,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Expansion.Shadowbringers, 61878, exVersion.GetRow(3).Name);
         Customize(BossModuleInfo.Expansion.Endwalker, 61879, exVersion.GetRow(4).Name);
         Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion.GetRow(5).Name);
-        Customize(BossModuleInfo.Expansion.Global, 61875, "Global");
+        Customize(BossModuleInfo.Expansion.Global, 61875, Loc.Tr("Global"));
 
         var contentType = Service.LuminaSheet<ContentType>()!;
         Customize(BossModuleInfo.Category.Uncategorized, contentType.GetRow(1), "Uncategorized");
@@ -151,7 +151,7 @@ public sealed class ModuleViewer : IDisposable
     private void DrawFilters()
     {
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Search:");
+        ImGui.Text(Loc.Tr("Search:"));
         ImGui.SameLine();
         ImGui.SetNextItemWidth(-1);
         DrawSearchBar();
@@ -169,7 +169,7 @@ public sealed class ModuleViewer : IDisposable
         ImGui.TextUnformatted(label);
         ImGui.Separator();
         using var _ = ImRaii.Table(label, 2, ImGuiTableFlags.SizingStretchProp);
-        ImGui.TableSetupColumn("icon", ImGuiTableColumnFlags.WidthFixed, _iconSize.X);
+        ImGui.TableSetupColumn(Loc.Tr("icon"), ImGuiTableColumnFlags.WidthFixed, _iconSize.X);
         drawTable.Invoke();
     }
 
@@ -180,7 +180,7 @@ public sealed class ModuleViewer : IDisposable
         if (ImGui.IsItemHovered() && !ImGui.IsItemFocused())
         {
             ImGui.BeginTooltip();
-            ImGui.Text("Type here to search for any specific instance by its respective title.");
+            ImGui.Text(Loc.Tr("Type here to search for any specific instance by its respective title."));
             ImGui.EndTooltip();
         }
     }
@@ -201,11 +201,11 @@ public sealed class ModuleViewer : IDisposable
                 shiftRmb: () => ToggleFocus(ref _filterExpansions, bit),
                 context: () =>
                 {
-                    if (ImGui.MenuItem($"Hide expansion", "LMB", selected: _filterExpansions[bit]))
+                    if (ImGui.MenuItem(Loc.Tr($"Hide expansion"), "LMB", selected: _filterExpansions[bit]))
                         _filterExpansions.Toggle(bit);
 
                     var isFocused = _filterExpansions == ~BitMask.Build(bit);
-                    if (ImGui.MenuItem($"Hide other expansions", "Shift + RMB", selected: isFocused))
+                    if (ImGui.MenuItem(Loc.Tr($"Hide other expansions"), "Shift + RMB", selected: isFocused))
                         ToggleFocus(ref _filterExpansions, bit);
                 }
             );
@@ -232,16 +232,16 @@ public sealed class ModuleViewer : IDisposable
                 shiftRmb: () => ToggleFocus(ref _filterCategories, bit),
                 context: () =>
                 {
-                    if (ImGui.MenuItem($"Hide category", "LMB", selected: _filterCategories[bit]))
+                    if (ImGui.MenuItem(Loc.Tr($"Hide category"), "LMB", selected: _filterCategories[bit]))
                         _filterCategories.Toggle(bit);
 
                     var isFocused = _filterCategories == ~BitMask.Build(bit);
-                    if (ImGui.MenuItem($"Hide other categories", "Shift + RMB", selected: isFocused))
+                    if (ImGui.MenuItem(Loc.Tr($"Hide other categories"), "Shift + RMB", selected: isFocused))
                         ToggleFocus(ref _filterCategories, bit);
 
                     ImGui.Separator();
 
-                    if (ImGui.MenuItem("Disable all modules in this category", "", isDisabledCategory))
+                    if (ImGui.MenuItem(Loc.Tr("Disable all modules in this category"), "", isDisabledCategory))
                     {
                         modified = true;
                         if (isDisabledCategory)
@@ -305,7 +305,7 @@ public sealed class ModuleViewer : IDisposable
         }
 
         if (ImGui.IsItemHovered() && disabled)
-            ImGui.SetTooltip("All modules in this category are disabled. Individual module settings are ignored.");
+            ImGui.SetTooltip(Loc.Tr("All modules in this category are disabled. Individual module settings are ignored."));
         if (ImGui.IsItemClicked())
             click?.Invoke();
         if (ImGui.IsItemClicked(ImGuiMouseButton.Right) && shift)
@@ -321,7 +321,7 @@ public sealed class ModuleViewer : IDisposable
     private void DrawModules(UITree tree, WorldState ws)
     {
         using var table = ImRaii.Table("ModulesTable", 2, ImGuiTableFlags.RowBg);
-        ImGui.TableSetupColumn("icons", ImGuiTableColumnFlags.WidthFixed, _iconSize.X * 2 + ImGui.GetStyle().FramePadding.X * 2);
+        ImGui.TableSetupColumn(Loc.Tr("icons"), ImGuiTableColumnFlags.WidthFixed, _iconSize.X * 2 + ImGui.GetStyle().FramePadding.X * 2);
         if (!table)
             return;
 
@@ -392,7 +392,7 @@ public sealed class ModuleViewer : IDisposable
 
     private void Customize(BossModuleInfo.Expansion expansion, uint iconId, ReadOnlySeString name) => _expansions[(int)expansion] = (name.ToString(), iconId);
     private void Customize(BossModuleInfo.Category category, uint iconId, ReadOnlySeString name) => _categories[(int)category] = (name.ToString(), iconId);
-    private void Customize(BossModuleInfo.Category category, ContentType ct, string? name = null) => Customize(category, ct.Icon, name ?? ct.Name);
+    private void Customize(BossModuleInfo.Category category, ContentType ct, string? name = null) => Customize(category, ct.Icon, name != null ? Loc.Tr(name) : ct.Name);
     private void Customize(BossModuleInfo.Category category, CharaCardPlayStyle ps) => Customize(category, (uint)ps.Icon, ps.Name);
 
     //private static IDalamudTextureWrap? GetIcon(uint iconId) => iconId != 0 ? Service.Texture?.GetIcon(iconId, Dalamud.Plugin.Services.ITextureProvider.IconFlags.HiRes) : null;
@@ -413,10 +413,10 @@ public sealed class ModuleViewer : IDisposable
                 groupId |= module.GroupID;
                 var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value;
                 var mcSort = uint.Parse(mcRow.ShortCode.ToString().AsSpan(3), CultureInfo.InvariantCulture); // 'aozNNN'
-                var mcName = $"Stage {mcSort}: {FixCase(mcRow.Name)}";
+                var mcName = Loc.Tr($"Stage {mcSort}: {FixCase(mcRow.Name)}");
                 return (new(mcName, groupId, mcSort), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.RemovedUnreal:
-                return (new("Removed Content", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+                return (new(Loc.Tr("Removed Content"), groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.Quest:
                 var questRow = Service.LuminaRow<Quest>(module.GroupID)!.Value;
                 groupId |= questRow.JournalGenre.RowId;
@@ -424,35 +424,35 @@ public sealed class ModuleViewer : IDisposable
                 return (new(questCategoryName, groupId, groupId), new(module, $"{questRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Fate:
                 var fateRow = Service.LuminaRow<Fate>(module.GroupID)!.Value;
-                return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module, $"{fateRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
+                return (new(Loc.Tr($"{module.Expansion.ShortName()} FATE"), groupId, groupId, _iconFATE), new(module, $"{fateRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Hunt:
                 groupId |= module.GroupID;
-                return (new($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}", groupId, groupId, _iconHunt), new(module, BNpcName(module.NameID), module.SortOrder));
+                return (new(Loc.Tr($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}"), groupId, groupId, _iconHunt), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaCE:
                 groupId |= module.GroupID;
-                var ceName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} CE";
+                var ceName = Loc.Tr($"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} CE");
                 return (new(ceName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaDuel:
                 groupId |= module.GroupID;
-                var duelName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} Duel";
+                var duelName = Loc.Tr($"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} Duel");
                 return (new(duelName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.EurekaNM:
                 groupId |= module.GroupID;
                 var nmName = FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name);
                 return (new(nmName, groupId, groupId), new(module, Service.LuminaRow<Fate>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.GoldSaucer:
-                return (new("Gold Saucer", groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
+                return (new(Loc.Tr("Gold Saucer"), groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
             default:
-                return (new("Uncategorized", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+                return (new(Loc.Tr("Uncategorized"), groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
         }
     }
 
     private string ModuleHelpText(ModuleInfo info)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(CultureInfo.CurrentCulture, $"Cooldown planning: {(info.Info.PlanLevel > 0 ? $"L{info.Info.PlanLevel}" : "not supported")}");
+        sb.AppendLine(Loc.Tr(info.Info.PlanLevel > 0 ? $"Cooldown planning: L{info.Info.PlanLevel}" : "Cooldown planning: not supported"));
         if (info.Info.Contributors.Length > 0)
-            sb.AppendLine(CultureInfo.CurrentCulture, $"Contributors: {info.Info.Contributors}");
+            sb.AppendLine(Loc.Tr($"Contributors: {info.Info.Contributors}"));
         return sb.ToString();
     }
 
@@ -466,7 +466,7 @@ public sealed class ModuleViewer : IDisposable
         {
             foreach (var plan in plans.Plans)
             {
-                if (ImGui.Selectable($"Edit {cls} '{plan.Name}' ({plan.Guid})"))
+                if (ImGui.Selectable(Loc.Tr($"Edit {cls} '{plan.Name}' ({plan.Guid})")))
                 {
                     UIPlanDatabaseEditor.StartPlanEditor(_planDB, plan);
                 }
@@ -476,12 +476,12 @@ public sealed class ModuleViewer : IDisposable
         if (Service.IsMock)
         {
             foreach (var cls in supportedClasses)
-                if (ImGui.Selectable($"New plan for {cls}..."))
+                if (ImGui.Selectable(Loc.Tr($"New plan for {cls}...")))
                     CreateForClass(info, mplans, cls);
         }
         else if (_ws.Party.Player() is { } player)
         {
-            if (ImGui.Selectable($"New plan for {player.Class}..."))
+            if (ImGui.Selectable(Loc.Tr($"New plan for {player.Class}...")))
                 CreateForClass(info, mplans, player.Class);
         }
     }

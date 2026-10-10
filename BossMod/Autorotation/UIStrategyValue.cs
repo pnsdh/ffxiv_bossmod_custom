@@ -53,7 +53,7 @@ public static class UIStrategyValue
         if (value is StrategyValueTrack tr)
         {
             modified |= DrawEditorTrackOption(tr, cfg, level);
-            modified |= ImGui.InputText("Comment", ref value.Comment, 512);
+            modified |= ImGui.InputText(Loc.Tr("Comment"), ref value.Comment, 512);
             modified |= DrawEditorPriority(tr);
             modified |= DrawEditorTarget(tr, cfg.Options[tr.Option].SupportedTargets, moduleInfo);
         }
@@ -88,7 +88,7 @@ public static class UIStrategyValue
     {
         var modified = false;
         var overridePriority = !float.IsNaN(value.PriorityOverride);
-        if (ImGui.Checkbox("Override priority", ref overridePriority))
+        if (ImGui.Checkbox(Loc.Tr("Override priority"), ref overridePriority))
         {
             modified = true;
             value.PriorityOverride = overridePriority ? ActionQueue.Priority.Low : float.NaN;
@@ -214,10 +214,10 @@ public static class UIStrategyValue
             }
             else
             {
-                modified |= ImGui.DragFloat("Offset", ref value.Offset1, 0.1f, 0, 30);
-                modified |= ImGui.DragFloat("Direction", ref value.Offset2, 1, -180, 180);
+                modified |= ImGui.DragFloat(Loc.Tr("Offset"), ref value.Offset1, 0.1f, 0, 30);
+                modified |= ImGui.DragFloat(Loc.Tr("Direction"), ref value.Offset2, 1, -180, 180);
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip($"In degrees; 0 is south, increases CCW (so 90 is E, 180 is N, -90 is W)");
+                    ImGui.SetTooltip(Loc.Tr($"In degrees; 0 is south, increases CCW (so 90 is E, 180 is N, -90 is W)"));
             }
         }
 
@@ -402,7 +402,7 @@ public class FakeFloatRenderer : TrackRenderer
                 modified = true;
             }
         }
-        if (ImGui.Checkbox("Stay on edge of hitbox", ref isOnHitbox))
+        if (ImGui.Checkbox(Loc.Tr("Stay on edge of hitbox"), ref isOnHitbox))
         {
             value.Option = isOnHitbox ? 0 : 1;
             modified = true;

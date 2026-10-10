@@ -22,7 +22,7 @@ internal sealed class DTRProvider : IDisposable
         _mgr = manager;
 
         _autorotationEntry.OnClick = _ => _wantOpenPopup = true;
-        _aiEntry.Tooltip = "Left click: toggle AI - Right click: toggle window";
+        _aiEntry.Tooltip = Loc.Tr("Left click: toggle AI - Right click: toggle window");
 
         _aiEntry.OnClick = ev =>
         {

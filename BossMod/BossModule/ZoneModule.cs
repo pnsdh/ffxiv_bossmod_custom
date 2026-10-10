@@ -32,7 +32,7 @@ public abstract class ZoneModule(WorldState ws) : IDisposable
         using var color = ImRaii.PushColor(ImGuiCol.Text, 0xffffff00);
         foreach (var hint in CalculateGlobalHints())
         {
-            ImGui.TextUnformatted(hint);
+            ImGui.TextUnformatted(Loc.Tr(hint));
             //ImGui.SameLine();
         }
         //ImGui.NewLine();

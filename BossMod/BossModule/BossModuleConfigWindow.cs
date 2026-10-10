@@ -25,7 +25,7 @@ public class BossModuleConfigWindow : UIWindow
         if (_node != null)
             ConfigUI.DrawNode(_node, Service.Config, _tree, _ws);
         else
-            ImGui.TextUnformatted("This module does not expose any configuration");
+            ImGui.TextUnformatted(Loc.Tr("This module does not expose any configuration"));
     }
 
     private void DrawPartyRolesAssignmentsTab()

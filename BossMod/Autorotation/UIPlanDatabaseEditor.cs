@@ -12,7 +12,7 @@ public sealed class UIPlanDatabaseEditor
         using var combo = ImRaii.Combo(label, selected >= 0 && selected < list.Plans.Count ? list.Plans[selected].Name : "<none>");
         if (combo)
         {
-            if (ImGui.Selectable("<none>", selected < 0))
+            if (ImGui.Selectable(Loc.Tr("<none>"), selected < 0))
             {
                 selected = -1;
             }

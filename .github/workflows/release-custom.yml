@@ -67,6 +67,9 @@ jobs:
           $m = Get-Content $path -Raw | ConvertFrom-Json
           $m.Name = "Boss Mod (Custom)"
           $m.RepoUrl = "https://github.com/${{ github.repository }}"
+          $m.Punchline = "레이드 기믹 실수 방지 (한국 서버 공략 옵션 추가)"
+          $m.Description = "보스 기믹 레이더, 자동 로테이션, 쿨다운 플래너, AI를 제공하는 플러그인입니다. 본가(awgil/ffxiv_bossmod)를 자동으로 따라가며, 한국 서버 공략에 맞춘 옵션과 한국어 UI를 추가한 버전입니다."
+          $m | Add-Member -NotePropertyName Tags -NotePropertyValue @("boss", "raid", "radar", "korean", "kr") -Force
           $m | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding utf8
 
       - name: Download KR Dalamud
@@ -105,6 +108,19 @@ jobs:
           Copy-Item $zip.FullName, $json.FullName -Destination release_assets
           Get-Content release_assets/BossMod.json
 
+      - name: Check untranslated strings
+        if: steps.check.outputs.skip == 'false'
+        id: loc
+        shell: pwsh
+        # new upstream strings show up in English until added to BossMod/Localization/LocKorean*.cs
+        run: |
+          python scripts/loc_extract.py --hints BossMod.Modules BossMod.Ultimate BossMod/Components BossMod/BossModule BossMod/Modules --states BossMod.Modules BossMod.Ultimate BossMod/Modules --json untranslated.json
+          $items = @(Get-Content untranslated.json -Raw -Encoding utf8 | ConvertFrom-Json)
+          "count=$($items.Count)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          $summary = @("## Untranslated strings: $($items.Count)", "")
+          $summary += $items | Select-Object -First 300 | ForEach-Object { "- [$($_.kind)] ``$($_.en -replace '\s+', ' ')`` ($($_.file))" }
+          $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
       - name: Publish GitHub Release
         if: steps.check.outputs.skip == 'false'
         shell: bash
@@ -116,4 +132,4 @@ jobs:
             --repo "${{ github.repository }}" \
             --target "$(git rev-parse HEAD)" \
             --title "${{ steps.ver.outputs.tag }}" \
-            --notes "Built from $(git rev-parse --short HEAD): $(git log -1 --format=%s)"
+            --notes "Built from $(git rev-parse --short HEAD): $(git log -1 --format=%s) (untranslated strings: ${{ steps.loc.outputs.count }})"

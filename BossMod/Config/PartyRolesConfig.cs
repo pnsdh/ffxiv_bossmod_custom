@@ -74,7 +74,7 @@ public class PartyRolesConfig : ConfigNode
             {
                 foreach (var r in typeof(Assignment).GetEnumValues())
                     ImGui.TableSetupColumn(r.ToString(), ImGuiTableColumnFlags.None, 25);
-                ImGui.TableSetupColumn("Name");
+                ImGui.TableSetupColumn(Loc.Tr("Name"));
                 ImGui.TableHeadersRow();
 
                 for (var i = 0; i < PartyState.MaxPartySize; ++i)
@@ -109,16 +109,16 @@ public class PartyRolesConfig : ConfigNode
         if (AssignmentsPerSlot(ws.Party).Length == 0)
         {
             using var color = ImRaii.PushColor(ImGuiCol.Text, 0xff00ffff);
-            ImGui.TextUnformatted("Invalid assignments: there should be exactly one raid member per role");
+            ImGui.TextUnformatted(Loc.Tr("Invalid assignments: there should be exactly one raid member per role"));
         }
         else
         {
             using var color = ImRaii.PushColor(ImGuiCol.Text, 0xff00ff00);
-            ImGui.TextUnformatted("All good!");
+            ImGui.TextUnformatted(Loc.Tr("All good!"));
         }
 
         using var _ = ImRaii.Disabled(party.Count != 8);
-        if (ImGui.Button("Auto-assign slots"))
+        if (ImGui.Button(Loc.Tr("Auto-assign slots")))
             TryAutoAssign(party);
     }
 

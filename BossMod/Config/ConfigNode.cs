@@ -18,7 +18,7 @@ public sealed class ConfigDisplayAttribute : Attribute
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class SectionStartAttribute(string label = "", bool separator = true) : Attribute
 {
-    public string Label { get; } = label;
+    public string Label => Loc.Tr(label);
     public bool Separator { get; } = separator;
 }
 
@@ -26,9 +26,9 @@ public sealed class SectionStartAttribute(string label = "", bool separator = tr
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffffff, string tooltip = "", string? since = null, string? depends = null, string[]? tags = null, Type? renderer = null) : Attribute
 {
-    public string Label { get; } = label;
+    public string Label => Loc.Tr(label);
     public uint Color { get; } = color;
-    public string Tooltip { get; } = tooltip;
+    public string Tooltip => Loc.Tr(tooltip);
     public string? Since { get; } = since;
     public string? Depends { get; } = depends;
     public string[] Tags { get; } = tags ?? [];
@@ -39,7 +39,7 @@ public sealed class PropertyDisplayAttribute(string label, uint color = 0xffffff
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class PropertyComboAttribute(string[] values) : Attribute
 {
-    public string[] Values { get; } = values;
+    public string[] Values => Loc.Tr(values);
 
 #pragma warning disable CA1019 // this is just a shorthand
     public PropertyComboAttribute(string falseText, string trueText) : this([falseText, trueText]) { }

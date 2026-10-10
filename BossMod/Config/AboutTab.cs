@@ -18,7 +18,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
     {
         using var wrap = ImRaii.TextWrapPos(0);
 
-        ImGui.TextUnformatted("Boss Mod (vbm) provides boss fight radar, auto-rotation, cooldown planning, and AI. All of its modules can be toggled individually. Support for it can be found in the Discord server linked at the bottom of this tab.");
+        ImGui.TextUnformatted(Loc.Tr("Boss Mod (vbm) provides boss fight radar, auto-rotation, cooldown planning, and AI. All of its modules can be toggled individually. Support for it can be found in the Discord server linked at the bottom of this tab."));
         ImGui.Spacing();
         DrawSection("Radar",
         [
@@ -63,16 +63,16 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         ImGui.Spacing();
 
         using (ImRaii.PushColor(ImGuiCol.Button, DiscordColor.ABGR))
-            if (ImGui.Button("Puni.sh Discord", new(180, 0)))
+            if (ImGui.Button(Loc.Tr("Puni.sh Discord"), new(180, 0)))
                 _lastErrorMessage = OpenLink("https://discord.gg/Zzrcc8kmvy");
         ImGui.SameLine();
-        if (ImGui.Button("Boss Mod Repository", new(180, 0)))
+        if (ImGui.Button(Loc.Tr("Boss Mod Repository"), new(180, 0)))
             _lastErrorMessage = OpenLink("https://github.com/awgil/ffxiv_bossmod");
         ImGui.SameLine();
-        if (ImGui.Button("Boss Mod Wiki Tutorials", new(180, 0)))
+        if (ImGui.Button(Loc.Tr("Boss Mod Wiki Tutorials"), new(180, 0)))
             _lastErrorMessage = OpenLink("https://github.com/awgil/ffxiv_bossmod/wiki");
         ImGui.SameLine();
-        if (ImGui.Button("Open Replay Folder", new(180, 0)) && replayDir != null)
+        if (ImGui.Button(Loc.Tr("Open Replay Folder"), new(180, 0)) && replayDir != null)
             _lastErrorMessage = OpenDirectory(replayDir);
 
         if (_lastErrorMessage.Length > 0)
@@ -92,7 +92,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
 
         using (ImRaii.PushColor(ImGuiCol.Text, TitleColor.ABGR))
         {
-            ImGui.TextUnformatted(title);
+            ImGui.TextUnformatted(Loc.Tr(title));
         }
 
         ImGui.Separator();
@@ -101,7 +101,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         {
             ImGui.Bullet();
             ImGui.SameLine();
-            ImGui.TextUnformatted(point);
+            ImGui.TextUnformatted(Loc.Tr(point));
         }
     }
 
