@@ -40,18 +40,13 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
 
         if (_config.P3Monitors09STOP)
         {
-            // 09STOP: M1 cleaves away from the boss monitor side (towards M2/M3), M2 cleaves north, M3 cleaves south
-            Angle? cleaveDir = _playerOrder[slot] switch
+            // 09STOP: face the middle of the widest cleave arc that hits exactly the intended pair (M1 -> M2+M3, M2 -> N1+M1, M3 -> N4+N5),
+            // based on actual positions, or on the assigned spots if nobody is in place yet
+            var cleave = BestCleave09STOP(slot, actual: true) ?? BestCleave09STOP(slot, actual: false);
+            if (cleave != null)
             {
-                1 => _bossAngle.Rad > 0 ? 90.Degrees() : -90.Degrees(),
-                2 => 180.Degrees(),
-                3 => 0.Degrees(),
-                _ => null
-            };
-            if (cleaveDir != null)
-            {
-                var facing = cleaveDir.Value - _playerAngles[slot];
-                hints.ForbiddenDirections.Add(((facing + 180.Degrees()).Normalized(), 150.Degrees(), _resolve));
+                var facing = cleave.Value - _playerAngles[slot];
+                hints.ForbiddenDirections.Add(((facing + 180.Degrees()).Normalized(), 160.Degrees(), _resolve));
             }
             return;
         }
@@ -157,10 +152,10 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         WPos adjust(float x, float z) => Module.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
         if (_config.P3Monitors09STOP)
         {
-            // coordinates for boss monitor on the left (west cleave): monitors on the east side, N2/N3 west (hit by boss), N1/N4/N5 just east of the boss line
-            (float x, float z)[] spots = IsMonitor(slot) ? [(8, -12), (13.5f, -6.5f), (13, 3.5f)] : [(1.5f, -17.5f), (-4, -1), (-14, -1), (1.5f, 9), (1.5f, 17)];
-            for (var i = 0; i < spots.Length; ++i)
-                yield return (adjust(spots[i].x, spots[i].z), _playerOrder[slot] == i + 1);
+            var isMonitor = IsMonitor(slot);
+            var numSpots = isMonitor ? _monitorSpots09STOP.Length : _otherSpots09STOP.Length;
+            for (var i = 1; i <= numSpots; ++i)
+                yield return (Spot09STOP(isMonitor, i), _playerOrder[slot] == i);
             yield break;
         }
         if (IsMonitor(slot))
@@ -229,6 +224,67 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         foreach (var aoe in AOEs())
             if (aoe.origin != null)
                 yield return (aoe.origin.Position, aoe.origin.Rotation + aoe.offset, aoe.order == order, isMonitor && aoe.order == _playerOrder[slot]);
+    }
+
+    // 09STOP spots for boss monitor on the left (west cleave), mirrored for the right; each moved at most 3y from the 09STOP diagram so that every
+    // monitor keeps ~+-19 degrees of facing tolerance (~+-14 if everyone stands 1.5y off), and N1/N4/N5 stay ~3y clear of the boss cleave
+    private static readonly (float x, float z)[] _monitorSpots09STOP = [(7.5f, -11), (13.5f, -6.5f), (15, 1.5f)];
+    private static readonly (float x, float z)[] _otherSpots09STOP = [(3, -17), (-4, -1), (-14, -1), (3, 10), (3, 14.5f)];
+
+    private WPos Spot09STOP(bool monitor, int order)
+    {
+        var (x, z) = (monitor ? _monitorSpots09STOP : _otherSpots09STOP)[order - 1];
+        return Module.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
+    }
+
+    private Angle? BestCleave09STOP(int slot, bool actual)
+    {
+        (bool monitor, int order)[] targets = _playerOrder[slot] switch
+        {
+            1 => [(true, 2), (true, 3)],
+            2 => [(false, 1), (true, 1)],
+            3 => [(false, 4), (false, 5)],
+            _ => []
+        };
+        if (targets.Length == 0)
+            return null;
+
+        WPos? position(int s) => actual ? Raid[s]?.Position : _playerOrder[s] != 0 ? Spot09STOP(IsMonitor(s), _playerOrder[s]) : null;
+        var source = position(slot);
+        if (source == null)
+            return null;
+        List<WPos> hit = [], avoid = [];
+        foreach (var (s, p) in Raid.WithSlot())
+        {
+            if (s == slot || p.IsDead || position(s) is not WPos pos)
+                continue;
+            if (targets.Contains((IsMonitor(s), _playerOrder[s])))
+                hit.Add(pos);
+            else
+                avoid.Add(pos);
+        }
+        if (hit.Count != targets.Length)
+            return null;
+
+        // cleave is a 180-degree cone: a target must be fully in front, everyone else fully behind (1y = hitbox + small margin)
+        var valid = new bool[360];
+        for (var i = 0; i < 360; ++i)
+        {
+            var dir = i.Degrees().ToDirection();
+            valid[i] = hit.All(p => (p - source.Value).Dot(dir) > 1) && avoid.All(p => (p - source.Value).Dot(dir) < -1);
+        }
+        int bestStart = -1, bestLength = 0;
+        for (var start = 0; start < 360; ++start)
+        {
+            if (!valid[start] || valid[(start + 359) % 360])
+                continue;
+            var length = 0;
+            while (length < 360 && valid[(start + length) % 360])
+                ++length;
+            if (length > bestLength)
+                (bestStart, bestLength) = (start, length);
+        }
+        return bestLength > 0 ? (bestStart + bestLength * 0.5f).Degrees() : null;
     }
 
     private IEnumerable<(Actor? origin, Angle offset, int order)> AOEs()
