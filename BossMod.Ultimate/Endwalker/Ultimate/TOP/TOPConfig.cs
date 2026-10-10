@@ -1,4 +1,6 @@
-﻿namespace BossMod.Endwalker.Ultimate.TOP;
+﻿using System.Text.Json.Serialization;
+
+namespace BossMod.Endwalker.Ultimate.TOP;
 
 [ConfigDisplay(Order = 0x210, Parent = typeof(EndwalkerConfig))]
 public partial class TOPConfig() : ConfigNode()
@@ -25,7 +27,7 @@ public partial class TOPConfig() : ConfigNode()
     public bool P1PantokratorNESW = false;
 
     [PropertyDisplay("P1 Pantokrator: group positions if first flames are N/S")]
-    [PropertyCombo("G1 east, G2 west", "G1 west, G2 east (09STOP)")]
+    [PropertyCombo("G1 east, G2 west (LPDU)", "G1 west, G2 east (09STOP)")]
     public bool P1PantokratorNSFlameG1West = true;
 
     [PropertyDisplay("P1 Pantokrator: use global priority instead - consider G1 lower-numbered than G2 (so G1 more likely to flex)")]
@@ -42,7 +44,7 @@ public partial class TOPConfig() : ConfigNode()
     public bool P2PartySynergyGlobalPriority = true;
 
     [PropertyDisplay("P2 Party Synergy: marker order from the eye (for G2 with Remote Glitch, reversed according to the option below)")]
-    [PropertyCombo("Cross, square, circle, triangle", "Circle, triangle, square, cross (09STOP)")]
+    [PropertyCombo("Cross, square, circle, triangle (LPDU, NA)", "Circle, triangle, square, cross (09STOP)")]
     public bool P2PartySynergyMarkerOrder09STOP = true;
 
     [PropertyDisplay("P2 Party Synergy: G2 order for Remote Glitch (far tether)")]
@@ -71,13 +73,23 @@ public partial class TOPConfig() : ConfigNode()
     [GroupPreset("09STOP (HHTTDDDD)", [2, 3, 0, 1, 4, 5, 6, 7])]
     public GroupAssignmentUnique P3MonitorsAssignments = new() { Assignments = [2, 3, 0, 1, 4, 5, 6, 7] };
 
-    [PropertyDisplay("P3 Monitors: layout")]
-    [PropertyCombo("Monitors on the boss monitor side (LPDU/NA, see the option below)", "09STOP: monitors on the opposite side, M1 away from the boss / M2 north / M3 south")]
-    public bool P3Monitors09STOP = true;
+    public enum P3MonitorsLayout
+    {
+        [PropertyDisplay("Monitors on the boss monitor side, safe side monitor north (LPDU)")]
+        LPDU,
 
-    [PropertyDisplay("P3 Monitors: position for safe side monitor (non-09STOP layout)")]
-    [PropertyCombo("North (LPDU)", "South (Aether)")]
-    public bool P3LastMonitorSouth = false;
+        [PropertyDisplay("Monitors on the boss monitor side, safe side monitor south (Aether)")]
+        Aether,
+
+        [PropertyDisplay("Monitors opposite the boss monitor, facing E/W, N, S (09STOP)")]
+        Strat09STOP,
+    }
+
+    [PropertyDisplay("P3 Monitors: layout")]
+    public P3MonitorsLayout P3MonitorsLayoutChoice = P3MonitorsLayout.Strat09STOP;
+
+    [JsonIgnore] public bool P3Monitors09STOP => P3MonitorsLayoutChoice == P3MonitorsLayout.Strat09STOP;
+    [JsonIgnore] public bool P3LastMonitorSouth => P3MonitorsLayoutChoice == P3MonitorsLayout.Aether;
 
     [PropertyDisplay("Monitors (P3, P5 Delta): automatically face correct direction before mechanic resolves", tooltip: "This feature requires Settings -> Action Tweaks -> Smart Character Orientation to be enabled.")]
     public bool P3MonitorForbiddenDirections = true;
