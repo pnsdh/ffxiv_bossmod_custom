@@ -11,6 +11,13 @@ static partial class LocKorean
     [
         ("Untranslated texts seen so far: {0}", "지금까지 표시된 미번역 문구: {0}"),
         ("Export untranslated texts", "미번역 문구 내보내기"),
+        ("Saved to {0}", "저장 위치: {0}"),
+        ("Replays", "리플레이"),
+
+        // kept as-is (job abbreviations in Action Tweaks etc.), listed so they don't show up as untranslated
+        ("AI", "AI"),
+        ("DNC", "DNC"), ("DRG", "DRG"), ("GNB", "GNB"), ("MCH", "MCH"), ("MNK", "MNK"), ("PCT", "PCT"),
+        ("PLD", "PLD"), ("RPR", "RPR"), ("SCH", "SCH"), ("WAR", "WAR"), ("WHM", "WHM"),
 
         // interpolated hints whose values are enum names; exact entries take precedence over the "{0}" patterns
         ("Glitch: Mid", "결함: 중거리"),

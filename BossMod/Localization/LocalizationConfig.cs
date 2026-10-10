@@ -18,6 +18,8 @@ public sealed class LocalizationConfig : ConfigNode
     [PropertyDisplay("UI language", tooltip: "Translates settings and mechanic hints. Text without a translation is shown in English.")]
     public UILanguage Language = UILanguage.Korean;
 
+    private string _lastExport = "";
+
     public override void DrawCustom(UITree tree, WorldState ws)
     {
         if (Language == UILanguage.English)
@@ -29,6 +31,12 @@ public sealed class LocalizationConfig : ConfigNode
             var path = Path.Combine(Plugin.GetStorageDir(), "untranslated.txt");
             File.WriteAllLines(path, Loc.Misses.Order());
             Service.Log($"Exported {Loc.Misses.Count} untranslated texts to {path}");
+            _lastExport = path;
+        }
+        if (_lastExport.Length > 0)
+        {
+            ImGui.SameLine();
+            ImGui.TextUnformatted(Loc.Tr($"Saved to {_lastExport}"));
         }
     }
 }
