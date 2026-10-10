@@ -242,20 +242,20 @@ class P5Sigma(BossModule module) : BossComponent(module)
             // two rows between the fists, circle-triangle-square-cross from left
             var left = p.Order switch
             {
-                1 => 4.4f,
+                1 => 4.3f,
                 2 => 1.4f,
                 3 => -1.5f,
-                _ => -4.4f
+                _ => -4.3f
             };
-            yield return left * north.OrthoL() - 5.7f * north;
-            yield return left * north.OrthoL() - 8.3f * north;
+            yield return left * north.OrthoL() - 4.4f * north;
+            yield return left * north.OrthoL() - 6.9f * north;
             yield break;
         }
 
         if (!_waveCannonsDone)
         {
             // everyone at the same distance from the center: close - in front of the floor markers, far - hugging the arena edge (radius 20 - hitbox)
-            var radius = ActiveGlitch == Glitch.Mid ? 11.5f : 19.5f;
+            var radius = ActiveGlitch == Glitch.Mid ? 12 : 19.5f;
             yield return radius * p.SpreadAngle.ToDirection();
         }
     }

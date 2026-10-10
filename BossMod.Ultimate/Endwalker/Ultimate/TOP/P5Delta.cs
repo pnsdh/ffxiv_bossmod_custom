@@ -248,17 +248,17 @@ class P5Delta(BossModule module) : BossComponent(module)
             // no punches yet, show all 4 possible spots: inner pairs on the number marker lines, outer blue pair close together next to omega, outer green pair behind the inner one
             if (p.IsLocal)
             {
-                yield return TransformRelNorth(9.5f, -7.7f);
-                yield return TransformRelNorth(9.5f, +7.7f);
-                yield return TransformRelNorth(12.6f, -7.5f);
-                yield return TransformRelNorth(12.6f, +7.5f);
+                yield return TransformRelNorth(8.6f, -7.7f);
+                yield return TransformRelNorth(8.6f, +7.7f);
+                yield return TransformRelNorth(11.6f, -7.5f);
+                yield return TransformRelNorth(11.6f, +7.5f);
             }
             else
             {
-                yield return TransformRelNorth(-10.6f, -7.3f);
-                yield return TransformRelNorth(-10.6f, +7.3f);
-                yield return TransformRelNorth(-13.8f, -2.8f);
-                yield return TransformRelNorth(-13.8f, +2.8f);
+                yield return TransformRelNorth(-11.3f, -7.3f);
+                yield return TransformRelNorth(-11.3f, +7.3f);
+                yield return TransformRelNorth(-14.4f, -2.8f);
+                yield return TransformRelNorth(-14.4f, +2.8f);
             }
             yield break;
         }
@@ -272,9 +272,9 @@ class P5Delta(BossModule module) : BossComponent(module)
             // greens stack in pairs on the number marker line; blues line up on the other number marker line, outer pair in the middle,
             // inner pair outside until their tether breaks, then they stack with the outer pair
             if (p.IsLocal)
-                yield return TransformRelNorth(9.5f, 7.7f * dirZ);
+                yield return TransformRelNorth(8.6f, 7.7f * dirZ);
             else
-                yield return TransformRelNorth(-10.6f, (p.PairAssignment == PairAssignment.Inner && NumTethersBroken == 0 ? 7.3f : 2.7f) * dirZ);
+                yield return TransformRelNorth(-11.3f, (p.PairAssignment == PairAssignment.Inner && NumTethersBroken == 0 ? 7.3f : 2.8f) * dirZ);
             yield break;
         }
 
@@ -292,9 +292,9 @@ class P5Delta(BossModule module) : BossComponent(module)
             {
                 // monitor soak spots, as far out as possible
                 if (p.PairAssignment == PairAssignment.Inner)
-                    yield return TransformRelNorth(-5.2f, 15.7f * dirZ);
+                    yield return TransformRelNorth(-5.3f, 15.5f * dirZ);
                 else
-                    yield return TransformRelNorth(10, 13 * dirZ);
+                    yield return TransformRelNorth(9.7f, 12.8f * dirZ);
             }
             else
             {
@@ -311,25 +311,25 @@ class P5Delta(BossModule module) : BossComponent(module)
             if (p.IsLocal)
             {
                 if (p.PairAssignment == PairAssignment.Outer)
-                    yield return TransformRelNorth(9.5f, 16 * safeDirZ); // both outer greens meet outside the final-side number marker to break the tether
+                    yield return TransformRelNorth(8.5f, 15.8f * safeDirZ); // both outer greens meet outside the final-side number marker to break the tether
                 else if (p.SideAssignment == SideAssignment.South)
-                    yield return TransformRelNorth(-18.1f, 1.8f * safeDirZ); // inner green from omega's left rotates CW to omega, as close to the safe side as possible
+                    yield return TransformRelNorth(-18.7f, 1.8f * safeDirZ); // inner green from omega's left rotates CW to omega, as close to the safe side as possible
                 else
-                    yield return TransformRelNorth(15.7f, 10.6f * safeDirZ); // inner green from omega's right rotates CW past final omega, 2.5 cells outside the number marker
+                    yield return TransformRelNorth(14.6f, 10.5f * safeDirZ); // inner green from omega's right rotates CW past final omega, 2.5 cells outside the number marker
             }
             else if (_distantWorld == Raid[slot])
             {
-                yield return TransformRelNorth(-0.6f, 6.3f * safeDirZ); // as close to the center as possible
+                yield return TransformRelNorth(-1.4f, 6.2f * safeDirZ); // as close to the center as possible
             }
             else if (_nearWorld == Raid[slot])
             {
-                yield return TransformRelNorth(-11.6f, 14 * safeDirZ); // outside the omega-side number marker
+                yield return TransformRelNorth(-12.3f, 13.8f * safeDirZ); // outside the omega-side number marker
             }
             else
             {
                 // either of the two spots next to the safe-side cardinal marker
-                yield return TransformRelNorth(-3.7f, 18.3f * safeDirZ);
-                yield return TransformRelNorth(2.8f, 18.5f * safeDirZ);
+                yield return TransformRelNorth(-4.5f, 18 * safeDirZ);
+                yield return TransformRelNorth(1.9f, 18.2f * safeDirZ);
             }
         }
     }
