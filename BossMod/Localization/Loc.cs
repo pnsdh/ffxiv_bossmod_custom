@@ -82,8 +82,10 @@ public static class Loc
 
         if (ReferenceEquals(result, text) && Misses.Count < 4096 && text.Any(char.IsAsciiLetter)) // texts without latin letters are game data already in the client language
             Misses.Add(text);
-        if (_patternCache.Count < 4096) // cache misses too, so per-frame texts don't rerun the patterns; interpolated strings can have unbounded variety
-            _patternCache[text] = result;
+        // cache misses too, so per-frame texts don't rerun the patterns; interpolated strings (e.g. timers) have unbounded variety, so start over when full
+        if (_patternCache.Count >= 4096)
+            _patternCache.Clear();
+        _patternCache[text] = result;
         return result;
     }
 
