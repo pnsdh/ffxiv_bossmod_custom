@@ -1,8 +1,10 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-// note: this is all very tied to LPDU strat
+// note: this is all very tied to LPDU strat; P5Delta09STOP switches to the 09STOP (Korean) variant, see the 09STOP comments below
 class P5Delta(BossModule module) : BossComponent(module)
 {
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+
     public enum PairAssignment { None, Inner, Outer }
     public enum SideAssignment { None, North, South }
 
@@ -195,6 +197,8 @@ class P5Delta(BossModule module) : BossComponent(module)
         float pairToOffsetX((int s1, int s2) slots) => MathF.Abs(slotToOffsetX(slots.s1) + slotToOffsetX(slots.s2));
         var outerLocal = _localTethers.MaxBy(pairToOffsetX);
         var outerRemote = _remoteTethers.MaxBy(pairToOffsetX);
+        var innerLocal = _localTethers.MinBy(pairToOffsetX);
+        var innerRemote = _remoteTethers.MinBy(pairToOffsetX);
         foreach (ref var p in Players.AsSpan())
         {
             var outerSlots = p.IsLocal ? outerLocal : outerRemote;
@@ -212,23 +216,28 @@ class P5Delta(BossModule module) : BossComponent(module)
                 Players[s2].SideAssignment = p12n ? SideAssignment.South : SideAssignment.North;
             }
         }
-        // 3. swap inner north/south if needed
-        foreach (ref var p in Players.AsSpan())
+        // 3. swap north/south if needed: LPDU swaps the inner pair, 09STOP swaps the outer pair
+        var swappingPair = _config.P5Delta09STOP ? PairAssignment.Outer : PairAssignment.Inner;
+        var swaps = new bool[Players.Length];
+        for (var i = 0; i < Players.Length; ++i)
         {
-            if (p.PairAssignment != PairAssignment.Inner)
-                continue; // outer stay where they are
+            ref var p = ref Players[i];
+            if (p.PairAssignment != swappingPair)
+                continue; // the other pair stays where it is
 
-            var outerSlots = p.IsLocal ? outerLocal : outerRemote;
-            var nearbyOuterSlot = Players[outerSlots.Item1].SideAssignment == p.SideAssignment ? outerSlots.Item1 : outerSlots.Item2;
-            if (p.RocketPunch?.OID == Players[nearbyOuterSlot].RocketPunch?.OID)
-            {
-                // swap side
-                p.SideAssignment = p.SideAssignment == SideAssignment.North ? SideAssignment.South : SideAssignment.North;
-            }
+            var otherSlots = p.IsLocal ? (swappingPair == PairAssignment.Inner ? outerLocal : innerLocal) : (swappingPair == PairAssignment.Inner ? outerRemote : innerRemote);
+            var nearbyOtherSlot = Players[otherSlots.Item1].SideAssignment == p.SideAssignment ? otherSlots.Item1 : otherSlots.Item2;
+            swaps[i] = p.RocketPunch?.OID == Players[nearbyOtherSlot].RocketPunch?.OID;
         }
+        for (var i = 0; i < Players.Length; ++i)
+            if (swaps[i])
+                Players[i].SideAssignment = Players[i].SideAssignment == SideAssignment.North ? SideAssignment.South : SideAssignment.North;
     }
 
-    private IEnumerable<WDir> SafeSpotOffsets(int slot)
+    private IEnumerable<WDir> SafeSpotOffsets(int slot) => _config.P5Delta09STOP ? SafeSpotOffsets09STOP(slot) : SafeSpotOffsetsLPDU(slot);
+
+    // 09STOP spots, measured from the 09STOP diagrams (omega at 12, final omega at 6, i.e. rel west/east here); x>0 = final side, z>0 = rel south
+    private IEnumerable<WDir> SafeSpotOffsets09STOP(int slot)
     {
         var p = Players[slot];
         if (p.PartnerSlot < 0 || _eyeDir == default)
@@ -236,6 +245,107 @@ class P5Delta(BossModule module) : BossComponent(module)
 
         if (NumPunchesSpawned < PartyState.MaxPartySize)
         {
+            if (!_config.P5ShowCandidateSpots)
+                yield break;
+            // no punches yet, show all 4 possible spots: inner pairs on the number marker lines, outer blue pair close together next to omega, outer green pair behind the inner one
+            if (p.IsLocal)
+            {
+                yield return TransformRelNorth(8.6f, -7.7f);
+                yield return TransformRelNorth(8.6f, +7.7f);
+                yield return TransformRelNorth(11.6f, -7.5f);
+                yield return TransformRelNorth(11.6f, +7.5f);
+            }
+            else
+            {
+                yield return TransformRelNorth(-11.3f, -7.3f);
+                yield return TransformRelNorth(-11.3f, +7.3f);
+                yield return TransformRelNorth(-14.4f, -2.8f);
+                yield return TransformRelNorth(-14.4f, +2.8f);
+            }
+            yield break;
+        }
+
+        if (p.SideAssignment == SideAssignment.None || p.PairAssignment == PairAssignment.None)
+            yield break; // we should have correct assignments by now
+
+        var dirZ = p.SideAssignment == SideAssignment.North ? -1 : 1; // fully symmetrical
+        if (!ExplosionsBaited)
+        {
+            // greens stack in pairs on the number marker line; blues line up on the other number marker line, outer pair in the middle,
+            // inner pair outside until their tether breaks, then they stack with the outer pair
+            if (p.IsLocal)
+                yield return TransformRelNorth(8.6f, 7.7f * dirZ);
+            else
+                yield return TransformRelNorth(-11.3f, (p.PairAssignment == PairAssignment.Inner && NumTethersBroken == 0 ? 7.3f : 2.8f) * dirZ);
+            yield break;
+        }
+
+        if (_beyondDefenceTarget == null)
+        {
+            // bait spots near arms: outer blue next to omega, inner blue next to the central M, inner green at rel north/south, outer green next to final omega
+            foreach (var s in SafeSpotOffsetsLPDU(slot))
+                yield return s;
+            yield break;
+        }
+
+        if (_swivelCannonSafeDir == default)
+        {
+            if (p.IsLocal)
+            {
+                // monitor soak spots, as far out as possible (1y from the arena edge)
+                if (p.PairAssignment == PairAssignment.Inner)
+                    yield return TransformRelNorth(-6.1f, 18 * dirZ);
+                else
+                    yield return TransformRelNorth(11.5f, 15.1f * dirZ);
+            }
+            else
+            {
+                // central stack; the beyond defense target dodges all monitors on the omega side
+                var stackPos = (Raid[slot] == _monitorTarget ? 6 : 2.5f) * _monitorSafeDir;
+                yield return Raid[slot] == _beyondDefenceTarget ? stackPos - TransformRelNorth(15, 0) : stackPos;
+            }
+            yield break;
+        }
+
+        {
+            // swivel cannon: everyone in the safe half; z = distance towards the safe side, x < 0 = towards omega
+            var safeDirZ = _swivelCannonSafeDir.Dot(_eyeDir) > 0 ? -1 : 1;
+            if (p.IsLocal)
+            {
+                if (p.PairAssignment == PairAssignment.Outer)
+                    yield return TransformRelNorth(9, 16.7f * safeDirZ); // both outer greens meet at the edge, 2 cells from the final-side number marker away from the cannon, to break the tether
+                else if (p.SideAssignment == SideAssignment.South)
+                    yield return TransformRelNorth(-18.9f, 1.8f * safeDirZ); // inner green from omega's left rotates CW to omega, as close to the safe side as possible
+                else
+                    yield return TransformRelNorth(15.4f, 11.1f * safeDirZ); // inner green from omega's right rotates CW past final omega, at the edge 2.5 cells from the number marker towards the cannon
+            }
+            else if (_distantWorld == Raid[slot])
+            {
+                yield return TransformRelNorth(-1.4f, 6.2f * safeDirZ); // as close to the center as possible
+            }
+            else if (_nearWorld == Raid[slot])
+            {
+                yield return TransformRelNorth(-12.6f, 14.2f * safeDirZ); // at the edge, 1 cell from the omega-side number marker away from the cannon
+            }
+            else
+            {
+                // either of the two spots next to the safe-side cardinal marker
+                yield return TransformRelNorth(-4.6f, 18.4f * safeDirZ);
+                yield return TransformRelNorth(2, 18.9f * safeDirZ);
+            }
+        }
+    }
+
+    private IEnumerable<WDir> SafeSpotOffsetsLPDU(int slot)
+    {
+        var p = Players[slot];
+        if (p.PartnerSlot < 0 || _eyeDir == default)
+            yield break; // no safe spots yet
+
+        if (NumPunchesSpawned < PartyState.MaxPartySize)
+        {
+            if (!_config.P5ShowCandidateSpots)
+                yield break;
             // no punches yet, show all 4 possible spots
             if (p.IsLocal)
             {
@@ -447,6 +557,8 @@ class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
 class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
     private readonly P5Delta? _delta = module.FindComponent<P5Delta>();
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+    private DateTime _resolve;
     private Actor? _boss;
     private Angle _bossAngle;
     private BitMask _bossIntendedTargets;
@@ -478,6 +590,53 @@ class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackS
             if (hit != _bossIntendedTargets[slot])
                 hints.Add(hit ? "GTFO from boss monitor!" : "Soak boss monitor!");
         }
+    }
+
+    // face so that the monitor hits exactly the intended targets, based on actual positions (the middle of the widest valid range);
+    // if that's impossible, minimize the damage: never add a second hit to someone in the boss monitor, then hit the intended targets, then avoid others
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (actor != _player || _boss == null || !_config.P3MonitorForbiddenDirections)
+            return;
+
+        var bossDir = (_boss.Rotation + _bossAngle).ToDirection();
+        List<(WPos pos, bool intended, bool hitByBoss)> players = [];
+        foreach (var (i, p) in Raid.WithSlot().Exclude(actor))
+            players.Add((p.Position, _playerIntendedTargets[i], (p.Position - _boss.Position).Dot(bossDir) > -0.5f));
+
+        var cost = new int[360];
+        for (var a = 0; a < 360; ++a)
+        {
+            var dir = a.Degrees().ToDirection();
+            foreach (var (pos, intended, hitByBoss) in players)
+            {
+                var d = (pos - actor.Position).Dot(dir);
+                if (d > -0.5f && hitByBoss)
+                    cost[a] += 1000;
+                if (intended && d <= 0.5f)
+                    cost[a] += 10;
+                else if (!intended && d > -0.5f)
+                    cost[a] += 1;
+            }
+        }
+        var best = cost.Min();
+        int bestStart = -1, bestLength = 0;
+        for (var start = 0; start < 360; ++start)
+        {
+            if (cost[start] != best || cost[(start + 359) % 360] == best && cost.Any(c => c != best))
+                continue;
+            var length = 0;
+            while (length < 360 && cost[(start + length) % 360] == best)
+                ++length;
+            if (length > bestLength)
+                (bestStart, bestLength) = (start, length);
+        }
+        if (bestLength is 0 or 360)
+            return;
+
+        var facing = (bestStart + bestLength * 0.5f).Degrees() - _playerAngle;
+        var allowed = Math.Clamp(bestLength * 0.5f - 2, 2, 15);
+        hints.ForbiddenDirections.Add(((facing + 180.Degrees()).Normalized(), (180 - allowed).Degrees(), _resolve));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
@@ -515,6 +674,7 @@ class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackS
             return;
         _boss = caster;
         _bossAngle = angle;
+        _resolve = Module.CastFinishAt(spell);
         if (_delta == null)
             return;
         var bossSide = angle.Rad > 0 ? P5Delta.SideAssignment.South : P5Delta.SideAssignment.North;

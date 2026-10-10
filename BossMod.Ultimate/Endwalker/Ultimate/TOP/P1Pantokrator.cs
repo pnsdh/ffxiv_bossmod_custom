@@ -38,7 +38,7 @@ class P1FlameThrower(BossModule module) : Components.GenericAOEs(module)
                 (> 75 and < 105) or (> -105 and < -75) => 0.Degrees(),
                 (> 105 and < 135) or (> -75 and < -45) => 30.Degrees(),
                 (> 135 and < 165) or (> -45 and < -15) => 60.Degrees(),
-                _ => -90.Degrees(), // assume groups go CW
+                _ => _config.P1PantokratorNSFlameG1West ? 90.Degrees() : -90.Degrees(), // N/S flames: G1 east by default (groups go CW), west for 09STOP
             };
             // undo direction adjustment to correct target safe spot
             if (_config.P1PantokratorNESW)

@@ -4,7 +4,7 @@
 // To find strings that still need a translation: python scripts/loc_extract.py --hints BossMod.Modules BossMod.Ultimate BossMod/Components BossMod/BossModule BossMod/Modules --states BossMod.Modules BossMod.Ultimate BossMod/Modules
 static partial class LocKorean
 {
-    public static IEnumerable<(string en, string ko)> Entries => [.. Manual, .. Core, .. Modules, .. Ultimate, .. UI, .. Hints, .. Timeline];
+    public static IEnumerable<(string en, string ko)> Entries => [.. Manual, .. Core, .. Modules, .. Ultimate, .. UI, .. Hints, .. Timeline, .. Custom];
 
     // strings passed to Loc.Tr directly from code (not picked up by the extractor)
     private static readonly (string, string)[] Manual =

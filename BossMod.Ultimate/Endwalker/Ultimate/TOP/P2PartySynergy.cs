@@ -60,13 +60,13 @@ class P2PartySynergy(BossModule module) : CommonAssignments(module)
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
     {
-        // assuming standard 'blue-purple-orange-green' order
+        // order from the eye: standard 'blue-purple-orange-green' or 09STOP 'orange-green-purple-blue'
         var order = (IconID)iconID switch
         {
-            IconID.PartySynergyCross => 1,
-            IconID.PartySynergySquare => 2,
-            IconID.PartySynergyCircle => 3,
-            IconID.PartySynergyTriangle => 4,
+            IconID.PartySynergyCross => _config.P2PartySynergyMarkerOrder09STOP ? 4 : 1,
+            IconID.PartySynergySquare => _config.P2PartySynergyMarkerOrder09STOP ? 3 : 2,
+            IconID.PartySynergyCircle => _config.P2PartySynergyMarkerOrder09STOP ? 1 : 3,
+            IconID.PartySynergyTriangle => _config.P2PartySynergyMarkerOrder09STOP ? 2 : 4,
             _ => 0
         };
         Assign(actor, order);

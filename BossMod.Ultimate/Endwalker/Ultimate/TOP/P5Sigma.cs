@@ -14,6 +14,7 @@ class P5Sigma(BossModule module) : BossComponent(module)
     }
 
     public Glitch ActiveGlitch;
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
     public PlayerState[] Players = Utils.MakeArray(PartyState.MaxPartySize, new PlayerState() { PartnerSlot = -1 });
     private WDir _waveCannonNorthDir;
     private int _numWaveCannonTargets;
@@ -82,13 +83,13 @@ class P5Sigma(BossModule module) : BossComponent(module)
         if (!Raid.TryFindSlot(actor, out var slot))
             return;
 
-        // assuming standard 'blue-purple-orange-green' order
+        // LPDU: 'blue-purple-orange-green' order; 09STOP: 'orange-green-purple-blue', left to right when looking away from the arms
         var order = (IconID)iconID switch
         {
-            IconID.PartySynergyCross => 1,
-            IconID.PartySynergySquare => 2,
-            IconID.PartySynergyCircle => 3,
-            IconID.PartySynergyTriangle => 4,
+            IconID.PartySynergyCross => _config.P5Sigma09STOP ? 4 : 1,
+            IconID.PartySynergySquare => _config.P5Sigma09STOP ? 3 : 2,
+            IconID.PartySynergyCircle => _config.P5Sigma09STOP ? 1 : 3,
+            IconID.PartySynergyTriangle => _config.P5Sigma09STOP ? 2 : 4,
             _ => 0
         };
         if (order > 0)
@@ -127,6 +128,12 @@ class P5Sigma(BossModule module) : BossComponent(module)
 
     private void InitSpreadPositions()
     {
+        if (_config.P5Sigma09STOP)
+        {
+            InitSpreadPositions09STOP();
+            return;
+        }
+
         var northAngle = Angle.FromDirection(_waveCannonNorthDir);
         var waveCannonsPerPair = new BitMask[4];
         for (var i = 0; i < Players.Length; ++i)
@@ -180,7 +187,80 @@ class P5Sigma(BossModule module) : BossComponent(module)
             p.SpreadAngle = p.SpreadAngle.Normalized();
     }
 
-    private IEnumerable<WDir> SafeSpotOffsets(int slot)
+    // 09STOP, 'north' = away from the arms (towards omega M): left double pair - upper N, lower S; right double pair - upper W, lower E;
+    // left single pair - marker behind the left fist (SW), partner NE; right single pair - marker behind the right fist (SE), partner NW
+    private void InitSpreadPositions09STOP()
+    {
+        var north = _waveCannonNorthDir.Normalized();
+        var northAngle = Angle.FromDirection(north);
+        var waveCannonsPerPair = new BitMask[4];
+        for (var i = 0; i < Players.Length; ++i)
+            if (Players[i].WaveCannonTarget && Players[i].Order > 0)
+                waveCannonsPerPair[Players[i].Order - 1].Set(i);
+
+        var nextSingle = 0;
+        var nextDouble = 0;
+        foreach (var mask in waveCannonsPerPair) // in order, i.e. left to right
+        {
+            if (mask.NumSetBits() == 2)
+            {
+                var upper = mask.LowestSetBit();
+                var lower = mask.HighestSetBit();
+                if (north.Dot((Raid[lower]?.Position ?? default) - (Raid[upper]?.Position ?? default)) > 0)
+                    Utils.Swap(ref upper, ref lower);
+                Players[upper].SpreadAngle = nextDouble == 0 ? northAngle : northAngle + 90.Degrees();
+                Players[lower].SpreadAngle = nextDouble == 0 ? northAngle + 180.Degrees() : northAngle - 90.Degrees();
+                ++nextDouble;
+            }
+            else if (mask.Any())
+            {
+                var marker = mask.LowestSetBit();
+                var partner = Players[marker].PartnerSlot;
+                Players[marker].SpreadAngle = nextSingle == 0 ? northAngle + 135.Degrees() : northAngle - 135.Degrees();
+                if (partner >= 0)
+                    Players[partner].SpreadAngle = nextSingle == 0 ? northAngle - 45.Degrees() : northAngle + 45.Degrees();
+                ++nextSingle;
+            }
+        }
+
+        foreach (ref var p in Players.AsSpan())
+            p.SpreadAngle = p.SpreadAngle.Normalized();
+    }
+
+    private IEnumerable<WDir> SafeSpotOffsets(int slot) => _config.P5Sigma09STOP ? SafeSpotOffsets09STOP(slot) : SafeSpotOffsetsLPDU(slot);
+
+    // 09STOP spots, measured from the 09STOP diagrams
+    private IEnumerable<WDir> SafeSpotOffsets09STOP(int slot)
+    {
+        var p = Players[slot];
+        if (_waveCannonNorthDir == default || p.Order == 0)
+            yield break; // no safe spots yet
+
+        var north = _waveCannonNorthDir.Normalized();
+        if (_numWaveCannonTargets < 6)
+        {
+            // two rows between the fists, circle-triangle-square-cross from left
+            var left = p.Order switch
+            {
+                1 => 4.3f,
+                2 => 1.4f,
+                3 => -1.5f,
+                _ => -4.3f
+            };
+            yield return left * north.OrthoL() - 4.4f * north;
+            yield return left * north.OrthoL() - 6.9f * north;
+            yield break;
+        }
+
+        if (!_waveCannonsDone)
+        {
+            // everyone at the same distance from the center: close - in front of the floor markers, far - 1y from the arena edge
+            var radius = ActiveGlitch == Glitch.Mid ? 11.5f : 19;
+            yield return radius * p.SpreadAngle.ToDirection();
+        }
+    }
+
+    private IEnumerable<WDir> SafeSpotOffsetsLPDU(int slot)
     {
         var p = Players[slot];
         if (_waveCannonNorthDir == default)
@@ -235,6 +315,14 @@ class P5SigmaWaveCannon(BossModule module) : Components.GenericBaitAway(module, 
 class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
 {
     private int _soakerSum;
+    private readonly WPos?[] _safeSpots09STOP = new WPos?[PartyState.MaxPartySize];
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+        if (Towers.Count > 0 && _safeSpots09STOP[pcSlot] is WPos spot)
+            Arena.AddCircle(spot, 1, ArenaColor.Safe);
+    }
 
     public override void OnActorCreated(Actor actor)
     {
@@ -259,6 +347,7 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
         {
             ++NumCasts;
             Towers.Clear();
+            Array.Fill(_safeSpots09STOP, null);
         }
     }
 
@@ -267,6 +356,11 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
         var sigma = Module.FindComponent<P5Sigma>();
         if (sigma == null)
             return;
+        if (Service.Config.Get<TOPConfig>().P5Sigma09STOP)
+        {
+            InitAssignments09STOP(sigma);
+            return;
+        }
 
         WDir relNorth = default;
         foreach (var t in Towers)
@@ -298,6 +392,75 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
                 else
                     AssignPlayers(sigma, ref tower, (left ? 90 : 0).Degrees()); // B/C
             }
+        }
+    }
+
+    // 09STOP macros: each floor marker (09STOP waymark layout: A north, 1 NE, B east, 2 SE, C south, 3 SW, D west, 4 NW) has a macro showing which tower to take
+    // in a picture with the 4-tower side on top; so the spread spot is the absolute map direction, the tower is relative to the 4-tower side
+    // (compass angles: clockwise in map view; spread = absolute, close/far = relative to the 4-tower side)
+    private static readonly (int spread, int close, int far)[] _towers09STOP =
+    [
+        (0, -27, -42), // A: top left
+        (45, -65, -42), // 1: left (close), top left (far)
+        (90, 27, 42), // B: top right
+        (135, 65, 42), // 2: right (close), top right (far)
+        (180, 65, 86), // C: right
+        (-135, -151, 180), // 3: bottom left (close), bottom (far)
+        (-90, -65, -86), // D: left
+        (-45, 151, 180), // 4: bottom right (close), bottom (far)
+    ];
+
+    private void InitAssignments09STOP(P5Sigma sigma)
+    {
+        WDir fourSide = default;
+        foreach (var t in Towers)
+            fourSide += t.Position - Module.Center;
+        var fourAngle = Angle.FromDirection(fourSide);
+        var far = Towers.Count == 5;
+
+        foreach (ref var tower in Towers.AsSpan())
+            tower.ForbiddenSoakers = new(0xFF);
+        var assigned = Utils.MakeArray(sigma.Players.Length, -1);
+
+        for (var i = 0; i < sigma.Players.Length; ++i)
+        {
+            var spreadAngle = sigma.Players[i].SpreadAngle;
+            if (sigma.Players[i].Order == 0)
+                continue; // not assigned
+            // BossMod angles grow counterclockwise in map view (north = 180), compass angles clockwise (north = 0)
+            var spreadCompass = 180 - spreadAngle.Normalized().Deg;
+            var entry = _towers09STOP.MinBy(e => Math.Abs((e.spread - spreadCompass + 540) % 360 - 180));
+            var target = fourAngle - (far ? entry.far : entry.close).Degrees();
+            var best = -1;
+            var bestDist = float.MaxValue;
+            for (var t = 0; t < Towers.Count; ++t)
+            {
+                var dist = (Angle.FromDirection(Towers[t].Position - Module.Center) - target).Normalized().Abs().Rad;
+                if (dist < bestDist)
+                    (best, bestDist) = (t, dist);
+            }
+            if (best >= 0)
+            {
+                Towers.AsSpan()[best].ForbiddenSoakers.Clear(i);
+                assigned[i] = best;
+            }
+        }
+
+        // close: stand in the tower center (two soakers share it); far: at the tower edge, as far as possible from the tethered partner's tower
+        for (var i = 0; i < assigned.Length; ++i)
+        {
+            if (assigned[i] < 0)
+                continue;
+            var pos = Towers[assigned[i]].Position;
+            var partner = sigma.Players[i].PartnerSlot;
+            if (far && partner >= 0 && assigned[partner] >= 0 && assigned[partner] != assigned[i])
+            {
+                pos += 2.5f * (pos - Towers[assigned[partner]].Position).Normalized(); // tower radius 3 - hitbox
+                var offset = pos - Module.Center;
+                if (offset.Length() > 19)
+                    pos = Module.Center + 19 * offset.Normalized(); // keep 1y from the arena edge
+            }
+            _safeSpots09STOP[i] = pos;
         }
     }
 
@@ -402,10 +565,54 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
             _dynamisStacks.Set(Raid.FindSlot(actor.InstanceID));
     }
 
+    // 09STOP, omega F at rel north (lasers start at rel south): measured from the 09STOP diagrams, edge spots 1y from the arena edge
+    // - distant world target: rel north, 3rd cell from the center; near world target: 90 degrees from rel south in the laser rotation direction, at the edge
+    // - bind 1/2/3 (dynamis, no hello world): NW / N / NE edge; number 1/2/3: S edge, 2 cells past the arm on the rotation side, 2 cells before it
+    private IEnumerable<WPos> SafeSpots09STOP(int slot, Actor actor)
+    {
+        var south = _lasers!.StartingDir;
+        var sign = _lasers.Rotation.Rad > 0 ? 1 : -1;
+        WPos spot(Angle dir, float radius) => Module.Center + radius * dir.ToDirection();
+
+        if (actor == DistantWorld)
+        {
+            yield return spot(south + 180.Degrees(), 10);
+            yield break;
+        }
+        if (actor == NearWorld)
+        {
+            yield return spot(south + sign * 90.Degrees(), 19);
+            yield break;
+        }
+
+        // the other six players' spots depend on the 09STOP marks, which we can't know, so they can only get all spots they can take (if enabled):
+        // no dynamis -> number spots only (S edge and around the arm on the rotation side), dynamis -> also bind spots (NW/N/NE edge)
+        if (!Service.Config.Get<TOPConfig>().P5ShowCandidateSpots)
+            yield break;
+        var arm = Module.Enemies(OID.RightArmUnit).Select(a => Angle.FromDirection(a.Position - Module.Center)).Where(a => sign * (a - south).Normalized().Rad > 0).Cast<Angle?>().FirstOrDefault()
+            ?? south + sign * 47.Degrees();
+        yield return spot(south, 19); // number 1
+        yield return spot(arm + sign * 13.5f.Degrees(), 19); // number 2
+        yield return spot(arm - sign * 13.5f.Degrees(), 19); // number 3
+        if (_dynamisStacks[slot])
+        {
+            yield return spot(south + 180.Degrees(), 19); // bind 2
+            yield return spot(south + 137.Degrees(), 19); // bind 1/3
+            yield return spot(south - 137.Degrees(), 19);
+        }
+    }
+
     private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
     {
         if (_lasers == null) // note: we assume StartingDir is relative south, Rotation is +- 9 degrees
             yield break;
+
+        if (Service.Config.Get<TOPConfig>().P5Sigma09STOP)
+        {
+            foreach (var p in SafeSpots09STOP(slot, actor))
+                yield return p;
+            yield break;
+        }
 
         if (actor == NearWorld)
         {
@@ -415,7 +622,7 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
         {
             yield return Module.Center + 10 * _lasers.StartingDir.ToDirection();
         }
-        else
+        else if (Service.Config.Get<TOPConfig>().P5ShowCandidateSpots)
         {
             // TODO: figure out a way to assign safespots - for now, assume no-dynamis always go south (and so can be second far baiters or any near baiters), dynamis can go anywhere
             yield return Module.Center + 19 * _lasers.StartingDir.ToDirection(); // '4' - second far bait spot

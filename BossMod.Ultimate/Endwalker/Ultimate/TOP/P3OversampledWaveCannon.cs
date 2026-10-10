@@ -38,6 +38,17 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         if (!IsMonitor(slot) || !_config.P3MonitorForbiddenDirections)
             return;
 
+        if (_config.P3Monitors09STOP)
+        {
+            if (SafestCleave09STOP(slot) is var (cleave, halfWidth))
+            {
+                var facing = cleave - _playerAngles[slot];
+                var allowed = Math.Clamp(halfWidth - 2, 2, 15);
+                hints.ForbiddenDirections.Add(((facing + 180.Degrees()).Normalized(), (180 - allowed).Degrees(), _resolve));
+            }
+            return;
+        }
+
         var safeCW = _bossAngle.Rad > 0;
 
         var targetCW = (_config.P3LastMonitorSouth, _playerOrder[slot]) switch
@@ -85,8 +96,8 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var p in SafeSpots(pcSlot))
-            Arena.AddCircle(p.pos, 1, p.assigned ? ArenaColor.Safe : ArenaColor.Danger);
+        foreach (var p in SafeSpots(pcSlot).Where(p => p.assigned))
+            Arena.AddCircle(p.pos, 1, ArenaColor.Safe);
     }
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
@@ -137,6 +148,14 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
             yield break;
 
         WPos adjust(float x, float z) => Module.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
+        if (_config.P3Monitors09STOP)
+        {
+            var isMonitor = IsMonitor(slot);
+            var numSpots = isMonitor ? _monitorSpots09STOP.Length : _otherSpots09STOP.Length;
+            for (var i = 1; i <= numSpots; ++i)
+                yield return (Spot09STOP(isMonitor, i), _playerOrder[slot] == i);
+            yield break;
+        }
         if (IsMonitor(slot))
         {
             var nextSlot = 0;
@@ -165,7 +184,18 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
     {
         var isMonitor = IsMonitor(slot);
         int order;
-        if (_config.P3LastMonitorSouth)
+        if (_config.P3Monitors09STOP)
+        {
+            order = (isMonitor, _playerOrder[slot]) switch
+            {
+                (true, 1) => 2, // M1 is hit by M2
+                (true, _) => 1, // M2/M3 are hit by M1
+                (_, 1) => 2, // N1 is hit by M2
+                (_, 2 or 3) => 0, // N2/N3 are hit by boss
+                _ => 3, // N4/N5 are hit by M3
+            };
+        }
+        else if (_config.P3LastMonitorSouth)
         {
             // NA strat, M3 is SE/SW
             order = (isMonitor, _playerOrder[slot]) switch
@@ -192,6 +222,111 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         foreach (var aoe in AOEs())
             if (aoe.origin != null)
                 yield return (aoe.origin.Position, aoe.origin.Rotation + aoe.offset, aoe.order == order, isMonitor && aoe.order == _playerOrder[slot]);
+    }
+
+    // 09STOP spots for boss monitor on the left (west cleave), mirrored for the right: the 09STOP diagram with N1/N4/N5 hugging the boss cleave line from outside
+    // and N2 from inside, which lets N3 move ~3y closer to the center; N1/N5 1y from the arena edge; everyone is at least 8.5y apart (hit players explode
+    // in 7y circles; the diagram has M1-M2 at 7.8y) and monitors facing exactly E/N/S keep +-11..15 degrees of tolerance (diagram: +-8..11)
+    private static readonly (float x, float z)[] _monitorSpots09STOP = [(8, -12), (16, -8.5f), (12.5f, 5.5f)];
+    private static readonly (float x, float z)[] _otherSpots09STOP = [(1, -19), (-1.5f, -1), (-11, -0.5f), (1, 10), (1, 19)];
+    private const float _explosionRadius = 7;
+
+    private WPos Spot09STOP(bool monitor, int order)
+    {
+        var (x, z) = (monitor ? _monitorSpots09STOP : _otherSpots09STOP)[order - 1];
+        return Module.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
+    }
+
+    // strat cleave direction of a monitor: M1 away from the boss monitor side, M2 north, M3 south
+    private Angle StratCleave09STOP(int order) => order switch
+    {
+        1 => _bossAngle.Rad > 0 ? 90.Degrees() : -90.Degrees(),
+        2 => 180.Degrees(),
+        _ => 0.Degrees()
+    };
+
+    // 09STOP auto-facing for a monitor, as a safety net for people standing in wrong spots. Uses actual positions, but assumes the boss and the other monitors
+    // aim exactly as the strat: their actual facing can't be trusted (it may change right before the snapshot and arrives with network delay).
+    // Every directly hit player explodes in a 7y circle, so a player takes one hit per hit player within 7.5y (7y + hitbox) of them.
+    // Picks a cleave direction that (1) doesn't make anyone take two hits, (2) hits the planned pair (M1 -> M2+M3, M2 -> N1+M1, M3 -> N4+N5),
+    // (3) doesn't hit anyone else; among the directions with the lowest cost, takes the middle of the range closest to the strat direction.
+    private (Angle cleave, float halfWidth)? SafestCleave09STOP(int slot)
+    {
+        var self = Raid[slot];
+        if (self == null || _boss == null)
+            return null;
+        (bool monitor, int order)[] plan = _playerOrder[slot] switch
+        {
+            1 => [(true, 2), (true, 3)],
+            2 => [(false, 1), (true, 1)],
+            3 => [(false, 4), (false, 5)],
+            _ => []
+        };
+        if (plan.Length == 0)
+            return null;
+        var strat = (int)MathF.Round(StratCleave09STOP(_playerOrder[slot]).Deg + 360) % 360;
+
+        List<(int slot, WPos origin, WDir dir)> otherSources = [(-1, _boss.Position, (_boss.Rotation + _bossAngle).ToDirection())];
+        foreach (var m in _monitorOrder)
+            if (m != slot && Raid[m] is { IsDead: false } monitor)
+                otherSources.Add((m, monitor.Position, StratCleave09STOP(_playerOrder[m]).ToDirection()));
+
+        // 'maybe hit': any part of the hitbox inside, 'surely hit': the whole hitbox inside; no extra margin, since the strat has people hugging the boss cleave line
+        static bool maybeHit(WPos origin, WDir dir, WPos p) => (p - origin).Dot(dir) > -0.5f;
+        static bool surelyHit(WPos origin, WDir dir, WPos p) => (p - origin).Dot(dir) > 0.5f;
+
+        List<(int slot, WPos pos, bool planned)> players = [.. Raid.WithSlot().Where(sp => !sp.Item2.IsDead).Select(sp => (sp.Item1, sp.Item2.Position, plan.Contains((IsMonitor(sp.Item1), _playerOrder[sp.Item1]))))];
+        List<WPos> fixedTargets = [];
+        foreach (var (s, pos, _) in players)
+            foreach (var src in otherSources)
+                if (src.slot != s && maybeHit(src.origin, src.dir, pos))
+                    fixedTargets.Add(pos);
+
+        const float explosionCheck = (_explosionRadius + 0.5f) * (_explosionRadius + 0.5f); // + player hitbox
+        var cost = new int[360];
+        List<WPos> targets = [];
+        for (var i = 0; i < 360; ++i)
+        {
+            var dir = i.Degrees().ToDirection();
+            targets.Clear();
+            targets.AddRange(fixedTargets);
+            foreach (var (s, pos, planned) in players)
+            {
+                if (s == slot)
+                    continue;
+                var maybe = maybeHit(self.Position, dir, pos);
+                if (maybe)
+                    targets.Add(pos);
+                if (planned && !surelyHit(self.Position, dir, pos))
+                    cost[i] += 10;
+                else if (!planned && maybe)
+                    cost[i] += 1;
+            }
+            foreach (var (_, pos, _) in players)
+                if (targets.Count(t => (t - pos).LengthSq() < explosionCheck) >= 2)
+                    cost[i] += 1000; // two hits = death
+        }
+
+        var best = cost.Min();
+        (int start, int length, int distance)? choice = null;
+        for (var start = 0; start < 360; ++start)
+        {
+            if (cost[start] != best || cost[(start + 359) % 360] == best && cost.Any(c => c != best))
+                continue;
+            var length = 0;
+            while (length < 360 && cost[(start + length) % 360] == best)
+                ++length;
+            var mid = (start + length / 2) % 360;
+            var distance = Math.Min(Math.Abs(mid - strat), 360 - Math.Abs(mid - strat));
+            if (choice == null || distance < choice.Value.distance)
+                choice = (start, length, distance);
+            if (length == 360)
+                break;
+        }
+        if (choice == null)
+            return null;
+        var (bestStart, bestLength, _) = choice.Value;
+        return bestLength == 360 ? (strat.Degrees(), 15) : ((bestStart + bestLength * 0.5f).Degrees(), bestLength * 0.5f);
     }
 
     private IEnumerable<(Actor? origin, Angle offset, int order)> AOEs()
