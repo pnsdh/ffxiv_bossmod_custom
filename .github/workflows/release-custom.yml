@@ -108,6 +108,19 @@ jobs:
           Copy-Item $zip.FullName, $json.FullName -Destination release_assets
           Get-Content release_assets/BossMod.json
 
+      - name: Check untranslated strings
+        if: steps.check.outputs.skip == 'false'
+        id: loc
+        shell: pwsh
+        # new upstream strings show up in English until added to BossMod/Localization/LocKorean*.cs
+        run: |
+          python scripts/loc_extract.py --hints BossMod.Modules BossMod.Ultimate BossMod/Components BossMod/BossModule BossMod/Modules --states BossMod.Modules BossMod.Ultimate BossMod/Modules --json untranslated.json
+          $items = @(Get-Content untranslated.json -Raw -Encoding utf8 | ConvertFrom-Json)
+          "count=$($items.Count)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          $summary = @("## Untranslated strings: $($items.Count)", "")
+          $summary += $items | Select-Object -First 300 | ForEach-Object { "- [$($_.kind)] ``$($_.en -replace '\s+', ' ')`` ($($_.file))" }
+          $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
       - name: Publish GitHub Release
         if: steps.check.outputs.skip == 'false'
         shell: bash
@@ -119,4 +132,4 @@ jobs:
             --repo "${{ github.repository }}" \
             --target "$(git rev-parse HEAD)" \
             --title "${{ steps.ver.outputs.tag }}" \
-            --notes "Built from $(git rev-parse --short HEAD): $(git log -1 --format=%s)"
+            --notes "Built from $(git rev-parse --short HEAD): $(git log -1 --format=%s) (untranslated strings: ${{ steps.loc.outputs.count }})"

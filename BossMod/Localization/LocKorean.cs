@@ -19,6 +19,16 @@ static partial class LocKorean
         ("DNC", "DNC"), ("DRG", "DRG"), ("GNB", "GNB"), ("MCH", "MCH"), ("MNK", "MNK"), ("PCT", "PCT"),
         ("PLD", "PLD"), ("RPR", "RPR"), ("SCH", "SCH"), ("WAR", "WAR"), ("WHM", "WHM"),
 
+        // config node names generated from class names (boss/content abbreviations), kept as-is
+        ("SharedActions", "SharedActions"), ("ActionTweaks", "ActionTweaks"), ("OutOfCombatActions", "OutOfCombatActions"), ("SmartRotation", "SmartRotation"), ("AIHints", "AIHints"), ("BossModule", "BossModule"),
+        ("ZoneModule", "ZoneModule"), ("Color", "Color"), ("PartyRoles", "PartyRoles"), ("Developer", "Developer"), ("Localization", "Localization"), ("Module", "Module"),
+        ("ReplayManagement", "ReplayManagement"), ("Ex3Sphene", "Ex3Sphene"), ("Ex4Zelenia", "Ex4Zelenia"), ("Ex8Enuo", "Ex8Enuo"), ("TradeTortoise", "TradeTortoise"), ("ForkedTower", "ForkedTower"),
+        ("Q01TheFinalVerse", "Q01TheFinalVerse"), ("RM05SDancingGreen", "RM05SDancingGreen"), ("RM06SSugarRiot", "RM06SSugarRiot"), ("RM08SHowlingBlade", "RM08SHowlingBlade"), ("RM09SVampFatale", "RM09SVampFatale"), ("RM10STheXtremes", "RM10STheXtremes"),
+        ("RM11STheTyrant", "RM11STheTyrant"), ("RM12S2TheLindwurm", "RM12S2TheLindwurm"), ("C033SStatice", "C033SStatice"), ("P12S1Athena", "P12S1Athena"), ("P12S2PallasAthena", "P12S2PallasAthena"), ("P1S", "P1S"),
+        ("P4S2", "P4S2"), ("P8S1", "P8S1"), ("P8S2", "P8S2"), ("AutoDD", "AutoDD"), ("A34RedGirl", "A34RedGirl"), ("DuelFarm", "DuelFarm"),
+        ("BozjaFarm", "BozjaFarm"), ("ZadnorFarm", "ZadnorFarm"), ("FRU", "FRU"), ("UMAD", "UMAD"), ("DSW1", "DSW1"), ("DSW2", "DSW2"),
+        ("TOP", "TOP"), ("TEA", "TEA"), ("UCOB", "UCOB"), ("UWU", "UWU"),
+
         // interpolated hints whose values are enum names; exact entries take precedence over the "{0}" patterns
         ("Glitch: Mid", "결함: 중거리"),
         ("Glitch: Remote", "결함: 원거리"),
