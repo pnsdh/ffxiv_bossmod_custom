@@ -1,0 +1,34 @@
+﻿using Dalamud.Bindings.ImGui;
+using System.IO;
+
+namespace BossMod;
+
+[ConfigDisplay(Name = "Language", Order = -10)]
+public sealed class LocalizationConfig : ConfigNode
+{
+    public enum UILanguage
+    {
+        [PropertyDisplay("English")]
+        English,
+
+        [PropertyDisplay("한국어")]
+        Korean,
+    }
+
+    [PropertyDisplay("UI language", tooltip: "Translates settings and mechanic hints. Text without a translation is shown in English.")]
+    public UILanguage Language = UILanguage.English;
+
+    public override void DrawCustom(UITree tree, WorldState ws)
+    {
+        if (Language == UILanguage.English)
+            return;
+
+        ImGui.TextUnformatted(Loc.Tr($"Untranslated texts seen so far: {Loc.Misses.Count}"));
+        if (ImGui.Button(Loc.Tr("Export untranslated texts")))
+        {
+            var path = Path.Combine(Plugin.GetStorageDir(), "untranslated.txt");
+            File.WriteAllLines(path, Loc.Misses.Order());
+            Service.Log($"Exported {Loc.Misses.Count} untranslated texts to {path}");
+        }
+    }
+}

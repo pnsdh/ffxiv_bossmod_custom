@@ -4,13 +4,13 @@
 [AttributeUsage(AttributeTargets.Field)]
 public sealed class GroupDetailsAttribute(string[] names) : Attribute
 {
-    public string[] Names { get; } = names;
+    public string[] Names => Loc.Tr(names);
 }
 
 [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 public sealed class GroupPresetAttribute(string name, int[] preset) : Attribute
 {
-    public string Name { get; } = name;
+    public string Name => Loc.Tr(name);
     public int[] Preset { get; } = preset;
 }
 
