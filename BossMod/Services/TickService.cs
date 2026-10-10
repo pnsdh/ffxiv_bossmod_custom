@@ -238,6 +238,18 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     void Update()
     {
+        if (CustomEdition.UpdatePaused(dalamud))
+        {
+            // a conflicting fork is running: behave like an idle plugin (no radar, AI, autorotation or windows),
+            // but keep the hooked action pipeline working so actions caught by our manual queue still go out
+            _wsSync.Update(_prevUpdateTime);
+            _hints.Clear();
+            _amex.QueueManualActions();
+            _amex.FinishActionGather();
+            _hintExecutor.Execute(); // with cleared hints: drops any movement/turn request made before the pause
+            return;
+        }
+
         var tsStart = DateTime.Now;
         var moveImminent = _movementOverride.IsMoveRequested() && (!_amex.Config.PreventMovingWhileCasting || _movementOverride.IsForceUnblocked());
 
