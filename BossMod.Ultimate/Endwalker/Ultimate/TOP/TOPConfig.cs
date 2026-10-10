@@ -1,13 +1,14 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
 [ConfigDisplay(Order = 0x210, Parent = typeof(EndwalkerConfig))]
-public class TOPConfig() : ConfigNode()
+public partial class TOPConfig() : ConfigNode()
 {
     [PropertyDisplay("P1 Program Loop: assignments (G1 CW from NW, G2 CCW by default, in case of conflict 'lower' number flexes)")]
     [GroupDetails(["G1 prio1", "G1 prio2", "G1 prio3", "G1 prio4", "G2 prio1", "G2 prio2", "G2 prio3", "G2 prio4"])]
     [GroupPreset("LPDU (global): M1>M2>MT>OT>R1>R2>H1>H2", [5, 4, 1, 0, 7, 6, 3, 2])]
     [GroupPreset("NA (snake prio): TMRH, group 2 north", [4, 0, 7, 3, 5, 1, 6, 2])]
-    public GroupAssignmentUnique P1ProgramLoopAssignments = new() { Assignments = [5, 4, 1, 0, 7, 6, 3, 2] };
+    [GroupPreset("09STOP (global): H1>T1>T2>D1>D2>D3>D4>H2", [6, 5, 7, 0, 4, 3, 2, 1])]
+    public GroupAssignmentUnique P1ProgramLoopAssignments = new() { Assignments = [6, 5, 7, 0, 4, 3, 2, 1] };
 
     [PropertyDisplay("P1 Program Loop: use global priority instead - consider G1 lower-numbered than G2 (so G1 more likely to flex)")]
     public bool P1ProgramLoopGlobalPriority = true;
@@ -16,23 +17,33 @@ public class TOPConfig() : ConfigNode()
     [GroupDetails(["G1 prio1", "G1 prio2", "G1 prio3", "G1 prio4", "G2 prio1", "G2 prio2", "G2 prio3", "G2 prio4"])]
     [GroupPreset("LPDU (light parties): flex T>M>R", [0, 4, 3, 7, 1, 5, 2, 6])]
     [GroupPreset("NA (snake prio): TMRH, group 2 north", [4, 0, 7, 3, 5, 1, 6, 2])]
-    public GroupAssignmentUnique P1PantokratorAssignments = new() { Assignments = [0, 4, 3, 7, 1, 5, 2, 6] };
+    [GroupPreset("09STOP (global): H1>T1>T2>D1>D2>D3>D4>H2", [6, 5, 7, 0, 4, 3, 2, 1])]
+    public GroupAssignmentUnique P1PantokratorAssignments = new() { Assignments = [6, 5, 7, 0, 4, 3, 2, 1] };
 
     [PropertyDisplay("P1 Pantokrator: group positions")]
     [PropertyCombo("North/South", "NE/SW")]
     public bool P1PantokratorNESW = false;
 
+    [PropertyDisplay("P1 Pantokrator: group positions if first flames are N/S")]
+    [PropertyCombo("G1 east, G2 west", "G1 west, G2 east (09STOP)")]
+    public bool P1PantokratorNSFlameG1West = true;
+
     [PropertyDisplay("P1 Pantokrator: use global priority instead - consider G1 lower-numbered than G2 (so G1 more likely to flex)")]
-    public bool P1PantokratorGlobalPriority = false;
+    public bool P1PantokratorGlobalPriority = true;
 
     [PropertyDisplay("P2 Party Synergy: assignments (G1 left, G2 right if looking at eye, in case of conflict 'lower' number flexes)")]
     [GroupDetails(["G1 prio1", "G1 prio2", "G1 prio3", "G1 prio4", "G2 prio1", "G2 prio2", "G2 prio3", "G2 prio4"])]
     [GroupPreset("LPDU (light parties): flex R>M>H", [3, 7, 2, 6, 1, 5, 0, 4])]
     [GroupPreset("NA (HRMT conga)", [0, 4, 3, 7, 1, 5, 2, 6])]
-    public GroupAssignmentUnique P2PartySynergyAssignments = new() { Assignments = [3, 7, 2, 6, 1, 5, 0, 4] };
+    [GroupPreset("09STOP (global): H1>T1>T2>D1>D2>D3>D4>H2", [6, 5, 7, 0, 4, 3, 2, 1])]
+    public GroupAssignmentUnique P2PartySynergyAssignments = new() { Assignments = [6, 5, 7, 0, 4, 3, 2, 1] };
 
     [PropertyDisplay("P2 Party Synergy: use global priority instead - consider G1 lower-numbered than G2 (so G1 more likely to flex)")]
-    public bool P2PartySynergyGlobalPriority = false;
+    public bool P2PartySynergyGlobalPriority = true;
+
+    [PropertyDisplay("P2 Party Synergy: marker order from the eye (for G2 with Remote Glitch, reversed according to the option below)")]
+    [PropertyCombo("Cross, square, circle, triangle", "Circle, triangle, square, cross (09STOP)")]
+    public bool P2PartySynergyMarkerOrder09STOP = true;
 
     [PropertyDisplay("P2 Party Synergy: G2 order for Remote Glitch (far tether)")]
     [PropertyCombo("GPOB (only B and G swap) (NA)", "GOPB (reverse order) (LPDU)")]
@@ -40,7 +51,7 @@ public class TOPConfig() : ConfigNode()
 
     [PropertyDisplay("P2 Party Synergy: Swap priority if both stacks are in the same group")]
     [PropertyCombo("Northernmost pair (NA)", "Southernmost pair (LPDU)")]
-    public bool P2PartySynergyStackSwapSouth = true;
+    public bool P2PartySynergyStackSwapSouth = false;
 
     [PropertyDisplay("P3 Intermission: spread/stack spot assignments, from West to East")]
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
