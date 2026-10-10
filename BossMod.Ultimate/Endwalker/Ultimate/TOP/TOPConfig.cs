@@ -87,4 +87,8 @@ public partial class TOPConfig() : ConfigNode()
     [GroupPreset("LPDU (TRHM)", [0, 1, 4, 5, 6, 7, 2, 3])]
     [GroupPreset("09STOP (TRHM)", [0, 1, 4, 5, 6, 7, 2, 3])]
     public GroupAssignmentUnique P4WaveCannonAssignments = new() { Assignments = [0, 1, 4, 5, 6, 7, 2, 3] };
+
+    [PropertyDisplay("P5 Delta: layout")]
+    [PropertyCombo("LPDU", "09STOP")]
+    public bool P5Delta09STOP = true;
 }

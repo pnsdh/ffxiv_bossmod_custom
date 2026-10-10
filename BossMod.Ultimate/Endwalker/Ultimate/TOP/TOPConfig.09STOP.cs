@@ -50,5 +50,8 @@ public partial class TOPConfig
 
         // P4 Wave Cannon: W column T1 D3 H1 D1, E column T2 D4 H2 D2 (north to south); same as the LPDU preset
         P4WaveCannonAssignments.Assignments = [0, 1, 4, 5, 6, 7, 2, 3];
+
+        // P5 Delta: outer pairs fix rocket punch colors, 09STOP spots (see P5Delta)
+        P5Delta09STOP = true;
     }
 }

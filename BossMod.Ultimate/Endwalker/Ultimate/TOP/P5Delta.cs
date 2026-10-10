@@ -1,8 +1,10 @@
 ﻿namespace BossMod.Endwalker.Ultimate.TOP;
 
-// note: this is all very tied to LPDU strat
+// note: this is all very tied to LPDU strat; P5Delta09STOP switches to the 09STOP (Korean) variant, see the 09STOP comments below
 class P5Delta(BossModule module) : BossComponent(module)
 {
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+
     public enum PairAssignment { None, Inner, Outer }
     public enum SideAssignment { None, North, South }
 
@@ -195,6 +197,8 @@ class P5Delta(BossModule module) : BossComponent(module)
         float pairToOffsetX((int s1, int s2) slots) => MathF.Abs(slotToOffsetX(slots.s1) + slotToOffsetX(slots.s2));
         var outerLocal = _localTethers.MaxBy(pairToOffsetX);
         var outerRemote = _remoteTethers.MaxBy(pairToOffsetX);
+        var innerLocal = _localTethers.MinBy(pairToOffsetX);
+        var innerRemote = _remoteTethers.MinBy(pairToOffsetX);
         foreach (ref var p in Players.AsSpan())
         {
             var outerSlots = p.IsLocal ? outerLocal : outerRemote;
@@ -212,23 +216,125 @@ class P5Delta(BossModule module) : BossComponent(module)
                 Players[s2].SideAssignment = p12n ? SideAssignment.South : SideAssignment.North;
             }
         }
-        // 3. swap inner north/south if needed
-        foreach (ref var p in Players.AsSpan())
+        // 3. swap north/south if needed: LPDU swaps the inner pair, 09STOP swaps the outer pair
+        var swappingPair = _config.P5Delta09STOP ? PairAssignment.Outer : PairAssignment.Inner;
+        var swaps = new bool[Players.Length];
+        for (var i = 0; i < Players.Length; ++i)
         {
-            if (p.PairAssignment != PairAssignment.Inner)
-                continue; // outer stay where they are
+            ref var p = ref Players[i];
+            if (p.PairAssignment != swappingPair)
+                continue; // the other pair stays where it is
 
-            var outerSlots = p.IsLocal ? outerLocal : outerRemote;
-            var nearbyOuterSlot = Players[outerSlots.Item1].SideAssignment == p.SideAssignment ? outerSlots.Item1 : outerSlots.Item2;
-            if (p.RocketPunch?.OID == Players[nearbyOuterSlot].RocketPunch?.OID)
+            var otherSlots = p.IsLocal ? (swappingPair == PairAssignment.Inner ? outerLocal : innerLocal) : (swappingPair == PairAssignment.Inner ? outerRemote : innerRemote);
+            var nearbyOtherSlot = Players[otherSlots.Item1].SideAssignment == p.SideAssignment ? otherSlots.Item1 : otherSlots.Item2;
+            swaps[i] = p.RocketPunch?.OID == Players[nearbyOtherSlot].RocketPunch?.OID;
+        }
+        for (var i = 0; i < Players.Length; ++i)
+            if (swaps[i])
+                Players[i].SideAssignment = Players[i].SideAssignment == SideAssignment.North ? SideAssignment.South : SideAssignment.North;
+    }
+
+    private IEnumerable<WDir> SafeSpotOffsets(int slot) => _config.P5Delta09STOP ? SafeSpotOffsets09STOP(slot) : SafeSpotOffsetsLPDU(slot);
+
+    // 09STOP spots, measured from the 09STOP diagrams (omega at 12, final omega at 6, i.e. rel west/east here); x>0 = final side, z>0 = rel south
+    private IEnumerable<WDir> SafeSpotOffsets09STOP(int slot)
+    {
+        var p = Players[slot];
+        if (p.PartnerSlot < 0 || _eyeDir == default)
+            yield break; // no safe spots yet
+
+        if (NumPunchesSpawned < PartyState.MaxPartySize)
+        {
+            // no punches yet, show all 4 possible spots: inner pairs on the number marker lines, outer blue pair close together next to omega, outer green pair behind the inner one
+            if (p.IsLocal)
             {
-                // swap side
-                p.SideAssignment = p.SideAssignment == SideAssignment.North ? SideAssignment.South : SideAssignment.North;
+                yield return TransformRelNorth(9.5f, -7.7f);
+                yield return TransformRelNorth(9.5f, +7.7f);
+                yield return TransformRelNorth(12.6f, -7.5f);
+                yield return TransformRelNorth(12.6f, +7.5f);
+            }
+            else
+            {
+                yield return TransformRelNorth(-10.6f, -7.3f);
+                yield return TransformRelNorth(-10.6f, +7.3f);
+                yield return TransformRelNorth(-13.8f, -2.8f);
+                yield return TransformRelNorth(-13.8f, +2.8f);
+            }
+            yield break;
+        }
+
+        if (p.SideAssignment == SideAssignment.None || p.PairAssignment == PairAssignment.None)
+            yield break; // we should have correct assignments by now
+
+        var dirZ = p.SideAssignment == SideAssignment.North ? -1 : 1; // fully symmetrical
+        if (!ExplosionsBaited)
+        {
+            // greens stack in pairs on the number marker line; blues line up on the other number marker line, outer pair in the middle,
+            // inner pair outside until their tether breaks, then they stack with the outer pair
+            if (p.IsLocal)
+                yield return TransformRelNorth(9.5f, 7.7f * dirZ);
+            else
+                yield return TransformRelNorth(-10.6f, (p.PairAssignment == PairAssignment.Inner && NumTethersBroken == 0 ? 7.3f : 2.7f) * dirZ);
+            yield break;
+        }
+
+        if (_beyondDefenceTarget == null)
+        {
+            // bait spots near arms: outer blue next to omega, inner blue next to the central M, inner green at rel north/south, outer green next to final omega
+            foreach (var s in SafeSpotOffsetsLPDU(slot))
+                yield return s;
+            yield break;
+        }
+
+        if (_swivelCannonSafeDir == default)
+        {
+            if (p.IsLocal)
+            {
+                // monitor soak spots, as far out as possible
+                if (p.PairAssignment == PairAssignment.Inner)
+                    yield return TransformRelNorth(-5.2f, 15.7f * dirZ);
+                else
+                    yield return TransformRelNorth(10, 13 * dirZ);
+            }
+            else
+            {
+                // central stack; the beyond defense target dodges all monitors on the omega side
+                var stackPos = (Raid[slot] == _monitorTarget ? 5 : 2.5f) * _monitorSafeDir;
+                yield return Raid[slot] == _beyondDefenceTarget ? stackPos - TransformRelNorth(15, 0) : stackPos;
+            }
+            yield break;
+        }
+
+        {
+            // swivel cannon: everyone in the safe half; z = distance towards the safe side, x < 0 = towards omega
+            var safeDirZ = _swivelCannonSafeDir.Dot(_eyeDir) > 0 ? -1 : 1;
+            if (p.IsLocal)
+            {
+                if (p.PairAssignment == PairAssignment.Outer)
+                    yield return TransformRelNorth(9.5f, 16 * safeDirZ); // both outer greens meet outside the final-side number marker to break the tether
+                else if (p.SideAssignment == SideAssignment.South)
+                    yield return TransformRelNorth(-18.1f, 1.8f * safeDirZ); // inner green from omega's left rotates CW to omega, as close to the safe side as possible
+                else
+                    yield return TransformRelNorth(15.7f, 10.6f * safeDirZ); // inner green from omega's right rotates CW past final omega, 2.5 cells outside the number marker
+            }
+            else if (_distantWorld == Raid[slot])
+            {
+                yield return TransformRelNorth(-0.6f, 6.3f * safeDirZ); // as close to the center as possible
+            }
+            else if (_nearWorld == Raid[slot])
+            {
+                yield return TransformRelNorth(-11.6f, 14 * safeDirZ); // outside the omega-side number marker
+            }
+            else
+            {
+                // either of the two spots next to the safe-side cardinal marker
+                yield return TransformRelNorth(-3.7f, 18.3f * safeDirZ);
+                yield return TransformRelNorth(2.8f, 18.5f * safeDirZ);
             }
         }
     }
 
-    private IEnumerable<WDir> SafeSpotOffsets(int slot)
+    private IEnumerable<WDir> SafeSpotOffsetsLPDU(int slot)
     {
         var p = Players[slot];
         if (p.PartnerSlot < 0 || _eyeDir == default)
