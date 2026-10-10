@@ -568,7 +568,6 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
     // 09STOP, omega F at rel north (lasers start at rel south): measured from the 09STOP diagrams, edge spots 1y from the arena edge
     // - distant world target: rel north, 3rd cell from the center; near world target: 90 degrees from rel south in the laser rotation direction, at the edge
     // - bind 1/2/3 (dynamis, no hello world): NW / N / NE edge; number 1/2/3: S edge, 2 cells past the arm on the rotation side, 2 cells before it
-    // which of the six non-target players takes which spot depends on the 09STOP marks, so they get all spots they can take: no dynamis -> number spots only
     private IEnumerable<WPos> SafeSpots09STOP(int slot, Actor actor)
     {
         var south = _lasers!.StartingDir;
@@ -586,17 +585,8 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
             yield break;
         }
 
-        var arm = Module.Enemies(OID.RightArmUnit).Select(a => Angle.FromDirection(a.Position - Module.Center)).Where(a => sign * (a - south).Normalized().Rad > 0).Cast<Angle?>().FirstOrDefault()
-            ?? south + sign * 47.Degrees();
-        yield return spot(south, 19); // number 1
-        yield return spot(arm + sign * 13.5f.Degrees(), 19); // number 2
-        yield return spot(arm - sign * 13.5f.Degrees(), 19); // number 3
-        if (_dynamisStacks[slot])
-        {
-            yield return spot(south + 180.Degrees(), 19); // bind 2
-            yield return spot(south + 137.Degrees(), 19); // bind 1/3
-            yield return spot(south - 137.Degrees(), 19);
-        }
+        // the other six players' spots (bind 1-3: NW/N/NE edge, number 1-3: S edge and around the arm on the rotation side) depend on the 09STOP marks,
+        // which we can't know, so nothing is shown for them
     }
 
     private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
