@@ -57,7 +57,8 @@ public partial class TOPConfig() : ConfigNode()
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
     [GroupPreset("LPDU (RMTH HTMR)", [2, 5, 3, 4, 1, 6, 0, 7])]
     [GroupPreset("NA (HRMT conga)", [3, 4, 0, 7, 2, 5, 1, 6])]
-    public GroupAssignmentUnique P3IntermissionAssignments = new() { Assignments = [2, 5, 3, 4, 1, 6, 0, 7] };
+    [GroupPreset("09STOP (HTTDDDDH)", [1, 2, 0, 7, 3, 4, 5, 6])]
+    public GroupAssignmentUnique P3IntermissionAssignments = new() { Assignments = [1, 2, 0, 7, 3, 4, 5, 6] };
 
     [PropertyDisplay("P3 Intermission: spread/stack position")]
     [PropertyCombo("Stacks S, spreads N", "Stacks N, spreads S")]
@@ -67,9 +68,14 @@ public partial class TOPConfig() : ConfigNode()
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
     [GroupPreset("LPDU (HTMR)", [2, 3, 0, 1, 4, 5, 6, 7])]
     [GroupPreset("NA (HRMT conga)", [3, 4, 0, 7, 2, 5, 1, 6])]
+    [GroupPreset("09STOP (HHTTDDDD)", [2, 3, 0, 1, 4, 5, 6, 7])]
     public GroupAssignmentUnique P3MonitorsAssignments = new() { Assignments = [2, 3, 0, 1, 4, 5, 6, 7] };
 
-    [PropertyDisplay("P3 Monitors: position for safe side monitor")]
+    [PropertyDisplay("P3 Monitors: layout")]
+    [PropertyCombo("Monitors on the boss monitor side (LPDU/NA, see the option below)", "09STOP: monitors on the opposite side, M1 away from the boss / M2 north / M3 south")]
+    public bool P3Monitors09STOP = true;
+
+    [PropertyDisplay("P3 Monitors: position for safe side monitor (non-09STOP layout)")]
     [PropertyCombo("North (LPDU)", "South (Aether)")]
     public bool P3LastMonitorSouth = false;
 

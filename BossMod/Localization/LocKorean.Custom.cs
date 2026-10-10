@@ -17,6 +17,13 @@ static partial class LocKorean
         ("Northernmost pair (NA)", "눈에 가까운 쪽 짝 (NA, 09STOP)"),
         ("Southernmost pair (LPDU)", "눈에서 먼 쪽 짝 (LPDU)"),
 
+        ("09STOP (HTTDDDDH)", "09STOP (HTTDDDDH)"),
+        ("09STOP (HHTTDDDD)", "09STOP (HHTTDDDD)"),
+        ("P3 Monitors: layout", "P3 모니터: 배치"),
+        ("Monitors on the boss monitor side (LPDU/NA, see the option below)", "모니터 대상이 보스 모니터 쪽 (LPDU/NA, 아래 옵션 참고)"),
+        ("09STOP: monitors on the opposite side, M1 away from the boss / M2 north / M3 south", "09STOP: 모니터 대상이 반대편, 모니터1은 보스 반대쪽 / 모니터2는 북 / 모니터3은 남으로 유도"),
+        ("P3 Monitors: position for safe side monitor (non-09STOP layout)", "P3 모니터: 안전한 쪽 모니터 위치 (09STOP이 아닌 배치)"),
+
         // BossMod.Ultimate/Endwalker/Ultimate/TOP/TOPConfig.09STOP.cs
         ("Apply 09STOP (Korean strat) to all TOP options", "TOP 전체를 09STOP(한국 공략)으로 설정"),
         ("Sets every TOP option that has a 09STOP choice. Options without one are left unchanged.", "09STOP 선택지가 있는 TOP 옵션을 모두 09STOP 값으로 바꿉니다. 09STOP 선택지가 없는 옵션은 그대로 둡니다."),

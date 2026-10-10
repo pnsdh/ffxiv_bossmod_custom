@@ -39,5 +39,13 @@ public partial class TOPConfig
         P2PartySynergyMarkerOrder09STOP = true;
         P2PartySynergyG2ReverseAll = true;
         P2PartySynergyStackSwapSouth = false;
+
+        // P3 Intermission: line W->E H1 T1 T2 D1 D2 D3 D4 H2; spreads W/SW/SE/E, stacks and no-debuff NW/NE
+        P3IntermissionAssignments.Assignments = [1, 2, 0, 7, 3, 4, 5, 6];
+        P3IntermissionStacksNorth = true;
+
+        // P3 Monitors: priority from north H1 H2 T1 T2 D1 D2 D3 D4; monitors stand opposite the boss monitor
+        P3MonitorsAssignments.Assignments = [2, 3, 0, 1, 4, 5, 6, 7];
+        P3Monitors09STOP = true;
     }
 }

@@ -38,6 +38,24 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
         if (!IsMonitor(slot) || !_config.P3MonitorForbiddenDirections)
             return;
 
+        if (_config.P3Monitors09STOP)
+        {
+            // 09STOP: M1 cleaves away from the boss monitor side (towards M2/M3), M2 cleaves north, M3 cleaves south
+            Angle? cleaveDir = _playerOrder[slot] switch
+            {
+                1 => _bossAngle.Rad > 0 ? 90.Degrees() : -90.Degrees(),
+                2 => 180.Degrees(),
+                3 => 0.Degrees(),
+                _ => null
+            };
+            if (cleaveDir != null)
+            {
+                var facing = cleaveDir.Value - _playerAngles[slot];
+                hints.ForbiddenDirections.Add(((facing + 180.Degrees()).Normalized(), 150.Degrees(), _resolve));
+            }
+            return;
+        }
+
         var safeCW = _bossAngle.Rad > 0;
 
         var targetCW = (_config.P3LastMonitorSouth, _playerOrder[slot]) switch
@@ -137,6 +155,14 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
             yield break;
 
         WPos adjust(float x, float z) => Module.Center + new WDir(_bossAngle.Rad < 0 ? -x : x, z);
+        if (_config.P3Monitors09STOP)
+        {
+            // coordinates for boss monitor on the left (west cleave): monitors on the east side, N2/N3 west (hit by boss), N1/N4/N5 just east of the boss line
+            (float x, float z)[] spots = IsMonitor(slot) ? [(8, -12), (13.5f, -6.5f), (13, 3.5f)] : [(1.5f, -17.5f), (-4, -1), (-14, -1), (1.5f, 9), (1.5f, 17)];
+            for (var i = 0; i < spots.Length; ++i)
+                yield return (adjust(spots[i].x, spots[i].z), _playerOrder[slot] == i + 1);
+            yield break;
+        }
         if (IsMonitor(slot))
         {
             var nextSlot = 0;
@@ -165,7 +191,18 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
     {
         var isMonitor = IsMonitor(slot);
         int order;
-        if (_config.P3LastMonitorSouth)
+        if (_config.P3Monitors09STOP)
+        {
+            order = (isMonitor, _playerOrder[slot]) switch
+            {
+                (true, 1) => 2, // M1 is hit by M2
+                (true, _) => 1, // M2/M3 are hit by M1
+                (_, 1) => 2, // N1 is hit by M2
+                (_, 2 or 3) => 0, // N2/N3 are hit by boss
+                _ => 3, // N4/N5 are hit by M3
+            };
+        }
+        else if (_config.P3LastMonitorSouth)
         {
             // NA strat, M3 is SE/SW
             order = (isMonitor, _playerOrder[slot]) switch
