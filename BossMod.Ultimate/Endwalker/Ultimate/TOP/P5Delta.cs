@@ -299,7 +299,7 @@ class P5Delta(BossModule module) : BossComponent(module)
             else
             {
                 // central stack; the beyond defense target dodges all monitors on the omega side
-                var stackPos = (Raid[slot] == _monitorTarget ? 5 : 2.5f) * _monitorSafeDir;
+                var stackPos = (Raid[slot] == _monitorTarget ? 6 : 2.5f) * _monitorSafeDir;
                 yield return Raid[slot] == _beyondDefenceTarget ? stackPos - TransformRelNorth(15, 0) : stackPos;
             }
             yield break;
