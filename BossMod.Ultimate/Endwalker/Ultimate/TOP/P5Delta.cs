@@ -290,11 +290,11 @@ class P5Delta(BossModule module) : BossComponent(module)
         {
             if (p.IsLocal)
             {
-                // monitor soak spots, as far out as possible
+                // monitor soak spots, as far out as possible (1y from the arena edge)
                 if (p.PairAssignment == PairAssignment.Inner)
-                    yield return TransformRelNorth(-5.3f, 15.5f * dirZ);
+                    yield return TransformRelNorth(-6.1f, 18 * dirZ);
                 else
-                    yield return TransformRelNorth(9.7f, 12.8f * dirZ);
+                    yield return TransformRelNorth(11.5f, 15.1f * dirZ);
             }
             else
             {
@@ -313,7 +313,7 @@ class P5Delta(BossModule module) : BossComponent(module)
                 if (p.PairAssignment == PairAssignment.Outer)
                     yield return TransformRelNorth(8.5f, 15.8f * safeDirZ); // both outer greens meet outside the final-side number marker to break the tether
                 else if (p.SideAssignment == SideAssignment.South)
-                    yield return TransformRelNorth(-18.7f, 1.8f * safeDirZ); // inner green from omega's left rotates CW to omega, as close to the safe side as possible
+                    yield return TransformRelNorth(-18.9f, 1.8f * safeDirZ); // inner green from omega's left rotates CW to omega, as close to the safe side as possible
                 else
                     yield return TransformRelNorth(14.6f, 10.5f * safeDirZ); // inner green from omega's right rotates CW past final omega, 2.5 cells outside the number marker
             }
@@ -328,8 +328,8 @@ class P5Delta(BossModule module) : BossComponent(module)
             else
             {
                 // either of the two spots next to the safe-side cardinal marker
-                yield return TransformRelNorth(-4.5f, 18 * safeDirZ);
-                yield return TransformRelNorth(1.9f, 18.2f * safeDirZ);
+                yield return TransformRelNorth(-4.6f, 18.4f * safeDirZ);
+                yield return TransformRelNorth(2, 18.9f * safeDirZ);
             }
         }
     }
