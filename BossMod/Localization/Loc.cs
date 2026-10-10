@@ -19,20 +19,26 @@ public static class Loc
 
     static Loc()
     {
+        List<(int literalLength, Regex pattern, string replacement)> patterns = [];
         foreach (var (en, ko) in LocKorean.Entries)
         {
             if (en.Contains("{0}", StringComparison.Ordinal))
             {
                 var parts = Regex.Split(en, @"\{\d+\}");
+                var literalLength = parts.Sum(p => p.Length);
+                if (!parts.Any(p => p.Any(char.IsLetter)))
+                    continue; // e.g. "{0} {1}" would match almost anything
                 var pattern = "^" + string.Join("(.*?)", parts.Select(Regex.Escape)) + "$";
                 var replacement = Regex.Replace(ko.Replace("$", "$$", StringComparison.Ordinal), @"\{(\d+)\}", m => $"${{{int.Parse(m.Groups[1].Value) + 1}}}");
-                _patterns.Add((new Regex(pattern, RegexOptions.Compiled | RegexOptions.Singleline), replacement));
+                patterns.Add((literalLength, new Regex(pattern, RegexOptions.Compiled | RegexOptions.Singleline), replacement));
             }
             else
             {
                 _exact[en] = ko;
             }
         }
+        // most specific (longest fixed text) first, so broad patterns like "{0} tether" don't shadow specific ones
+        _patterns.AddRange(patterns.OrderByDescending(p => p.literalLength).Select(p => (p.pattern, p.replacement)));
     }
 
     public static bool Enabled

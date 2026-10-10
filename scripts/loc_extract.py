@@ -302,7 +302,8 @@ def main():
     known = known_translations()
     seen, result = set(), []
     for en, kind, rel in found:
-        if not en.strip() or en in seen or (not args.all and en in known):
+        numbered = re.match(r'^(.+?) (\d+)$', en)  # Loc translates "Raidwide 3" via "Raidwide"
+        if not en.strip() or en in seen or (not args.all and (en in known or (numbered and numbered.group(1) in known))):
             continue
         seen.add(en)
         result.append({'en': en, 'kind': kind, 'file': rel})
