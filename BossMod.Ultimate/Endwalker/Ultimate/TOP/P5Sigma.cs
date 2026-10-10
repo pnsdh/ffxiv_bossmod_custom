@@ -345,8 +345,13 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
     private void InitAssignments()
     {
         var sigma = Module.FindComponent<P5Sigma>();
-        if (sigma == null || Service.Config.Get<TOPConfig>().P5Sigma09STOP)
-            return; // assignments below are LPDU-specific
+        if (sigma == null)
+            return;
+        if (Service.Config.Get<TOPConfig>().P5Sigma09STOP)
+        {
+            InitAssignments09STOP(sigma);
+            return;
+        }
 
         WDir relNorth = default;
         foreach (var t in Towers)
@@ -378,6 +383,54 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
                 else
                     AssignPlayers(sigma, ref tower, (left ? 90 : 0).Degrees()); // B/C
             }
+        }
+    }
+
+    // 09STOP macros: each floor marker (09STOP waymark layout: A north, 1 NE, B east, 2 SE, C south, 3 SW, D west, 4 NW) has a macro showing which tower to take
+    // in a picture with the 4-tower side on top; so the spread spot is the absolute map direction, the tower is relative to the 4-tower side
+    // (compass angles: clockwise in map view; spread = absolute, close/far = relative to the 4-tower side)
+    private static readonly (int spread, int close, int far)[] _towers09STOP =
+    [
+        (0, -27, -42), // A: top left
+        (45, -65, -42), // 1: left (close), top left (far)
+        (90, 27, 42), // B: top right
+        (135, 65, 42), // 2: right (close), top right (far)
+        (180, 65, 86), // C: right
+        (-135, -151, 180), // 3: bottom left (close), bottom (far)
+        (-90, -65, -86), // D: left
+        (-45, 151, 180), // 4: bottom right (close), bottom (far)
+    ];
+
+    private void InitAssignments09STOP(P5Sigma sigma)
+    {
+        WDir fourSide = default;
+        foreach (var t in Towers)
+            fourSide += t.Position - Module.Center;
+        var fourAngle = Angle.FromDirection(fourSide);
+        var far = Towers.Count == 5;
+
+        foreach (ref var tower in Towers.AsSpan())
+            tower.ForbiddenSoakers = new(0xFF);
+
+        for (var i = 0; i < sigma.Players.Length; ++i)
+        {
+            var spreadAngle = sigma.Players[i].SpreadAngle;
+            if (sigma.Players[i].Order == 0)
+                continue; // not assigned
+            // BossMod angles grow counterclockwise in map view (north = 180), compass angles clockwise (north = 0)
+            var spreadCompass = 180 - spreadAngle.Normalized().Deg;
+            var entry = _towers09STOP.MinBy(e => Math.Abs((e.spread - spreadCompass + 540) % 360 - 180));
+            var target = fourAngle - (far ? entry.far : entry.close).Degrees();
+            var best = -1;
+            var bestDist = float.MaxValue;
+            for (var t = 0; t < Towers.Count; ++t)
+            {
+                var dist = (Angle.FromDirection(Towers[t].Position - Module.Center) - target).Normalized().Abs().Rad;
+                if (dist < bestDist)
+                    (best, bestDist) = (t, dist);
+            }
+            if (best >= 0)
+                Towers.AsSpan()[best].ForbiddenSoakers.Clear(i);
         }
     }
 
