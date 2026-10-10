@@ -69,26 +69,29 @@ jobs:
           $m.RepoUrl = "https://github.com/${{ github.repository }}"
           $m | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding utf8
 
+      - name: Download KR Dalamud
+        if: steps.check.outputs.skip == 'false'
+        shell: pwsh
+        # build against the same Dalamud (and FFXIVClientStructs) the KR client runs
+        run: |
+          $dalamud = "$env:AppData\XIVLauncher\addon\Hooks\dev"
+          New-Item -ItemType Directory -Force -Path $dalamud | Out-Null
+          Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dal4kr/Dalamud.Resources/main/Dalamud/latest/Release.zip" -OutFile "dalamud.zip"
+          Expand-Archive -Path "dalamud.zip" -DestinationPath $dalamud -Force
+          (Get-Item "$dalamud\Dalamud.dll").VersionInfo.FileVersion
+
       - name: Build (Release)
         if: steps.check.outputs.skip == 'false'
         shell: pwsh
-        # LocalCS=false: use Dalamud's FFXIVClientStructs at runtime (the KR Dalamud's matches the KR client), like the official package.
-        # Upstream master often needs newer ClientStructs than stable Dalamud ships, so fall back to the staging track.
+        # LocalCS=false: use Dalamud's FFXIVClientStructs at runtime instead of bundling the submodule one, like the official package
         run: |
-          $dalamud = "$env:AppData\XIVLauncher\addon\Hooks\dev"
-          foreach ($track in 'latest.zip', 'stg/latest.zip') {
-            Write-Host "::group::Build against Dalamud $track"
-            if (Test-Path $dalamud) { Remove-Item -Recurse -Force $dalamud }
-            New-Item -ItemType Directory -Force -Path $dalamud | Out-Null
-            Invoke-WebRequest -Uri "https://goatcorp.github.io/dalamud-distrib/$track" -OutFile "dalamud.zip"
-            Expand-Archive -Path "dalamud.zip" -DestinationPath $dalamud -Force
-            if (Test-Path BossMod/bin) { Remove-Item -Recurse -Force BossMod/bin }
-            dotnet publish BossMod/BossMod.csproj -c Release -p:LocalCS=false -p:Version=${{ steps.ver.outputs.version }} --nologo
-            $ok = $LASTEXITCODE -eq 0
-            Write-Host "::endgroup::"
-            if ($ok) { Write-Host "Built against Dalamud $track"; exit 0 }
+          # module projects are built by BossMod's PackagePublish target without a restore of their own
+          foreach ($p in 'BossMod.Autorotation', 'BossMod.Modules', 'BossMod.Ultimate') {
+            dotnet restore "$p/$p.csproj" -p:Configuration=Release -p:LocalCS=false
+            if ($LASTEXITCODE -ne 0) { throw "Restore of $p failed" }
           }
-          throw "Build failed against both stable and staging Dalamud"
+          dotnet publish BossMod/BossMod.csproj -c Release -p:LocalCS=false -p:Version=${{ steps.ver.outputs.version }} --nologo
+          if ($LASTEXITCODE -ne 0) { throw "Build failed" }
 
       - name: Collect release assets
         if: steps.check.outputs.skip == 'false'
@@ -98,10 +101,6 @@ jobs:
           if (-not $zip) { throw "latest.zip not found under BossMod/bin" }
           $json = Get-ChildItem $zip.DirectoryName -Filter "BossMod.json" | Select-Object -First 1
           if (-not $json) { throw "BossMod.json not found next to latest.zip" }
-          # KR Dalamud's API level; a build against a newer-API staging Dalamud wouldn't load there. Bump when KR updates.
-          $expectedApi = 15
-          $api = (Get-Content $json.FullName -Raw | ConvertFrom-Json).DalamudApiLevel
-          if ($api -ne $expectedApi) { throw "DalamudApiLevel is $api, expected $expectedApi (KR) - not releasing" }
           New-Item -ItemType Directory -Force -Path release_assets | Out-Null
           Copy-Item $zip.FullName, $json.FullName -Destination release_assets
           Get-Content release_assets/BossMod.json

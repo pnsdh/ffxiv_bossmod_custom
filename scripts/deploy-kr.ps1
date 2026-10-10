@@ -14,6 +14,11 @@ $modules = Join-Path $env:APPDATA 'vbm\modules'
 # use KR Dalamud (and its FFXIVClientStructs, which match the KR client) instead of the global one / local submodule
 $env:DALAMUD_HOME = Join-Path $launcher 'addon\Hooks\dev\'
 if (Test-Path $publish) { Remove-Item -Recurse -Force $publish }
+# module projects are built by BossMod's PackagePublish target without a restore of their own
+foreach ($p in 'BossMod.Autorotation', 'BossMod.Modules', 'BossMod.Ultimate') {
+    dotnet restore (Join-Path $root "$p\$p.csproj") -p:Configuration=Release -p:LocalCS=false
+    if ($LASTEXITCODE -ne 0) { throw "Restore of $p failed" }
+}
 dotnet publish (Join-Path $root 'BossMod\BossMod.csproj') -c Release -p:LocalCS=false
 if ($LASTEXITCODE -ne 0) { throw "Build failed" }
 
