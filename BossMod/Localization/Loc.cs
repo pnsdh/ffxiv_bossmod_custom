@@ -11,6 +11,7 @@ public static class Loc
     private static readonly Dictionary<string, string> _exact = [];
     private static readonly List<(Regex pattern, string replacement)> _patterns = [];
     private static readonly Dictionary<string, string> _patternCache = [];
+    private static readonly Regex _numberSuffix = new(@"^(.+?) (\d+)$", RegexOptions.Compiled); // "Raidwide 3" -> "Raidwide" + " 3"
     private static readonly Dictionary<string, string[]> _arrayCache = []; // keyed by joined contents, since attributes are re-instantiated on every lookup
 
     // strings that had no translation while a non-English language was active (for finding gaps)
@@ -70,12 +71,12 @@ public static class Loc
             }
         }
 
-        if (ReferenceEquals(result, text))
-        {
-            if (Misses.Count < 4096)
-                Misses.Add(text);
-        }
-        else if (_patternCache.Count < 4096) // interpolated strings can have unbounded variety
+        if (ReferenceEquals(result, text) && _numberSuffix.Match(text) is { Success: true } numbered && _exact.TryGetValue(numbered.Groups[1].Value, out var baseText))
+            result = $"{baseText} {numbered.Groups[2].Value}";
+
+        if (ReferenceEquals(result, text) && Misses.Count < 4096 && text.Any(char.IsAsciiLetter)) // texts without latin letters are game data already in the client language
+            Misses.Add(text);
+        if (_patternCache.Count < 4096) // cache misses too, so per-frame texts don't rerun the patterns; interpolated strings can have unbounded variety
             _patternCache[text] = result;
         return result;
     }

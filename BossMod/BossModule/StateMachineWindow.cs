@@ -17,9 +17,9 @@ public class StateMachineWindow : UIWindow
     {
         if (ImGui.CollapsingHeader("Settings"))
         {
-            ImGui.Checkbox("Draw unnamed nodes", ref _col.DrawUnnamedNodes);
-            ImGui.Checkbox("Draw tankbuster nodes only", ref _col.DrawTankbusterNodesOnly);
-            ImGui.Checkbox("Draw raidwide nodes only", ref _col.DrawRaidwideNodesOnly);
+            ImGui.Checkbox(Loc.Tr("Draw unnamed nodes"), ref _col.DrawUnnamedNodes);
+            ImGui.Checkbox(Loc.Tr("Draw tankbuster nodes only"), ref _col.DrawTankbusterNodesOnly);
+            ImGui.Checkbox(Loc.Tr("Draw raidwide nodes only"), ref _col.DrawRaidwideNodesOnly);
         }
 
         _timeline.CurrentTime = null;

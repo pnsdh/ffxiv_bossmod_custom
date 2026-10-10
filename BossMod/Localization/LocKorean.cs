@@ -15,5 +15,10 @@ static partial class LocKorean
         // interpolated hints whose values are enum names; exact entries take precedence over the "{0}" patterns
         ("Glitch: Mid", "결함: 중거리"),
         ("Glitch: Remote", "결함: 원거리"),
+
+        // slash command argument hints (not translated, listed so the extractor treats them as done)
+        ("<config-type> <field> [<value>]", "<config-type> <field> [<value>]"),
+        ("<preset>", "<preset>"),
+        ("<name>/slot<N>", "<name>/slot<N>"),
     ];
 }

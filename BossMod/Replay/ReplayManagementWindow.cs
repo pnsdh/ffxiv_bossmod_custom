@@ -73,7 +73,7 @@ public class ReplayManagementWindow : UIWindow
 
     public override void Draw()
     {
-        if (ImGui.Button(!IsRecording() ? "Start recording" : "Stop recording"))
+        if (ImGui.Button(Loc.Tr(!IsRecording() ? "Start recording" : "Stop recording")))
         {
             if (!IsRecording())
             {
@@ -137,7 +137,7 @@ public class ReplayManagementWindow : UIWindow
         ImGui.SameLine();
         using (ImRaii.Disabled(matching.Count == 0 || !hasFilter))
         {
-            if (UIMisc.DangerousButton("Delete matching"))
+            if (UIMisc.DangerousButton(Loc.Tr("Delete matching")))
                 DeleteMatching(matching);
         }
         if (!hasFilter && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
@@ -201,7 +201,7 @@ public class ReplayManagementWindow : UIWindow
 
         _manager.UnloadPaths(deleted);
         _cullFiles = ReplayFileMeta.Scan(_logDir);
-        _cullStatus = failed == 0 ? $"Deleted {deleted.Count} file(s)." : $"Deleted {deleted.Count} file(s), {failed} failed.";
+        _cullStatus = Loc.Tr(failed == 0 ? $"Deleted {deleted.Count} file(s)." : $"Deleted {deleted.Count} file(s), {failed} failed.");
     }
 
     public bool IsRecording() => _recorder != null;
@@ -211,7 +211,7 @@ public class ReplayManagementWindow : UIWindow
         SetVisible(false);
     }
 
-    private void UpdateTitle() => WindowName = $"Replay recording: {(_recorder != null ? "in progress..." : "idle")}{_windowID}";
+    private void UpdateTitle() => WindowName = Loc.Tr(_recorder != null ? "Replay recording: in progress..." : "Replay recording: idle") + _windowID;
 
     public bool ShouldAutoRecord => _config.AutoRecord && (_config.AutoARR || !Service.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]);
 

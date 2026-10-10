@@ -92,7 +92,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
 
         using (ImRaii.PushColor(ImGuiCol.Text, TitleColor.ABGR))
         {
-            ImGui.TextUnformatted(title);
+            ImGui.TextUnformatted(Loc.Tr(title));
         }
 
         ImGui.Separator();
@@ -101,7 +101,7 @@ public sealed class AboutTab(DirectoryInfo? replayDir)
         {
             ImGui.Bullet();
             ImGui.SameLine();
-            ImGui.TextUnformatted(point);
+            ImGui.TextUnformatted(Loc.Tr(point));
         }
     }
 

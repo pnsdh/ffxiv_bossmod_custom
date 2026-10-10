@@ -112,12 +112,12 @@ public class StateMachine(List<StateMachine.Phase> phases)
         (var activeName, var next) = ActiveState != null ? BuildComplexStateNameAndDuration(ActiveState, TimeSinceTransition, true) : ("Inactive", null);
         var future = BuildStateChain(next, " ---> ");
 
-        Utils.TextOutlined($"Cur: {activeName}", outlineColor);
+        Utils.TextOutlined(Loc.Tr($"Cur: {activeName}"), outlineColor);
 
         if (future.Length == 0)
             ImGui.TextUnformatted("");
         else
-            Utils.TextOutlined($"Then: {future}", outlineColor);
+            Utils.TextOutlined(Loc.Tr($"Then: {future}"), outlineColor);
     }
 
     public string BuildStateChain(State? start, string sep, int maxCount = 5)
@@ -155,11 +155,11 @@ public class StateMachine(List<StateMachine.Phase> phases)
 
     private (string, State?) BuildComplexStateNameAndDuration(State start, float timeActive, bool writeTime)
     {
-        var res = new StringBuilder(start.Name);
+        var res = new StringBuilder(Loc.Tr(start.Name));
         var timeLeft = MathF.Max(0, start.Duration - timeActive);
         if (writeTime && res.Length > 0)
         {
-            res.Append($" in {timeLeft:f1}s");
+            res.Append(Loc.Tr($" in {timeLeft:f1}s"));
             timeLeft = 0;
         }
 
@@ -171,11 +171,11 @@ public class StateMachine(List<StateMachine.Phase> phases)
             {
                 if (res.Length > 0)
                     res.Append(" + ");
-                res.Append(start.Name);
+                res.Append(Loc.Tr(start.Name));
 
                 if (writeTime && timeLeft > 0)
                 {
-                    res.Append($" in {timeLeft:f1}s");
+                    res.Append(Loc.Tr($" in {timeLeft:f1}s"));
                     timeLeft = 0;
                 }
             }
@@ -185,7 +185,7 @@ public class StateMachine(List<StateMachine.Phase> phases)
         {
             if (res.Length == 0)
                 res.Append("???");
-            res.Append($" in {timeLeft:f1}s");
+            res.Append(Loc.Tr($" in {timeLeft:f1}s"));
         }
 
         return (res.ToString(), start.NextStates?.Length == 1 ? start.NextStates[0] : null);

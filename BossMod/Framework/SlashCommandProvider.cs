@@ -53,12 +53,12 @@ public class SlashCommandHandler
     public void AddHelp(string prefix, List<string> result, bool forceSimpleWithoutPrefix)
     {
         if (forceSimpleWithoutPrefix)
-            result.Add(SimpleDescription);
+            result.Add(Loc.Tr(SimpleDescription));
         else if (SimpleDescription.Length > 0)
-            result.Add($"{prefix} → {SimpleDescription}");
+            result.Add($"{prefix} → {Loc.Tr(SimpleDescription)}");
 
         if (ComplexDescription.Length > 0)
-            result.Add($"{prefix} {ComplexArgsHint} → {ComplexDescription}");
+            result.Add($"{prefix} {ComplexArgsHint} → {Loc.Tr(ComplexDescription)}");
         foreach (var sub in Subcommands)
             sub.Value.AddHelp($"{prefix} {sub.Key}", result, false);
     }

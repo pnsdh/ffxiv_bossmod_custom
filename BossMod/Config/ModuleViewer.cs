@@ -53,7 +53,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Expansion.Shadowbringers, 61878, exVersion.GetRow(3).Name);
         Customize(BossModuleInfo.Expansion.Endwalker, 61879, exVersion.GetRow(4).Name);
         Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion.GetRow(5).Name);
-        Customize(BossModuleInfo.Expansion.Global, 61875, "Global");
+        Customize(BossModuleInfo.Expansion.Global, 61875, Loc.Tr("Global"));
 
         var contentType = Service.LuminaSheet<ContentType>()!;
         Customize(BossModuleInfo.Category.Uncategorized, contentType.GetRow(1), "Uncategorized");
@@ -392,7 +392,7 @@ public sealed class ModuleViewer : IDisposable
 
     private void Customize(BossModuleInfo.Expansion expansion, uint iconId, ReadOnlySeString name) => _expansions[(int)expansion] = (name.ToString(), iconId);
     private void Customize(BossModuleInfo.Category category, uint iconId, ReadOnlySeString name) => _categories[(int)category] = (name.ToString(), iconId);
-    private void Customize(BossModuleInfo.Category category, ContentType ct, string? name = null) => Customize(category, ct.Icon, name ?? ct.Name);
+    private void Customize(BossModuleInfo.Category category, ContentType ct, string? name = null) => Customize(category, ct.Icon, name != null ? Loc.Tr(name) : ct.Name);
     private void Customize(BossModuleInfo.Category category, CharaCardPlayStyle ps) => Customize(category, (uint)ps.Icon, ps.Name);
 
     //private static IDalamudTextureWrap? GetIcon(uint iconId) => iconId != 0 ? Service.Texture?.GetIcon(iconId, Dalamud.Plugin.Services.ITextureProvider.IconFlags.HiRes) : null;
@@ -413,10 +413,10 @@ public sealed class ModuleViewer : IDisposable
                 groupId |= module.GroupID;
                 var mcRow = Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value;
                 var mcSort = uint.Parse(mcRow.ShortCode.ToString().AsSpan(3), CultureInfo.InvariantCulture); // 'aozNNN'
-                var mcName = $"Stage {mcSort}: {FixCase(mcRow.Name)}";
+                var mcName = Loc.Tr($"Stage {mcSort}: {FixCase(mcRow.Name)}");
                 return (new(mcName, groupId, mcSort), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.RemovedUnreal:
-                return (new("Removed Content", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+                return (new(Loc.Tr("Removed Content"), groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.Quest:
                 var questRow = Service.LuminaRow<Quest>(module.GroupID)!.Value;
                 groupId |= questRow.JournalGenre.RowId;
@@ -424,35 +424,35 @@ public sealed class ModuleViewer : IDisposable
                 return (new(questCategoryName, groupId, groupId), new(module, $"{questRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Fate:
                 var fateRow = Service.LuminaRow<Fate>(module.GroupID)!.Value;
-                return (new($"{module.Expansion.ShortName()} FATE", groupId, groupId, _iconFATE), new(module, $"{fateRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
+                return (new(Loc.Tr($"{module.Expansion.ShortName()} FATE"), groupId, groupId, _iconFATE), new(module, $"{fateRow.Name}: {BNpcName(module.NameID)}", module.SortOrder));
             case BossModuleInfo.GroupType.Hunt:
                 groupId |= module.GroupID;
-                return (new($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}", groupId, groupId, _iconHunt), new(module, BNpcName(module.NameID), module.SortOrder));
+                return (new(Loc.Tr($"{module.Expansion.ShortName()} Hunt {(BossModuleInfo.HuntRank)module.GroupID}"), groupId, groupId, _iconHunt), new(module, BNpcName(module.NameID), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaCE:
                 groupId |= module.GroupID;
-                var ceName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} CE";
+                var ceName = Loc.Tr($"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} CE");
                 return (new(ceName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.BozjaDuel:
                 groupId |= module.GroupID;
-                var duelName = $"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} Duel";
+                var duelName = Loc.Tr($"{FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name)} Duel");
                 return (new(duelName, groupId, groupId), new(module, Service.LuminaRow<DynamicEvent>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.EurekaNM:
                 groupId |= module.GroupID;
                 var nmName = FixCase(Service.LuminaRow<ContentFinderCondition>(module.GroupID)!.Value.Name);
                 return (new(nmName, groupId, groupId), new(module, Service.LuminaRow<Fate>(module.NameID)!.Value.Name.ToString(), module.SortOrder));
             case BossModuleInfo.GroupType.GoldSaucer:
-                return (new("Gold Saucer", groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
+                return (new(Loc.Tr("Gold Saucer"), groupId, groupId), new(module, $"{Service.LuminaRow<GoldSaucerTextData>(module.GroupID)?.Text}: {BNpcName(module.NameID)}", module.SortOrder));
             default:
-                return (new("Uncategorized", groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
+                return (new(Loc.Tr("Uncategorized"), groupId, groupId), new(module, BNpcName(module.NameID), module.SortOrder));
         }
     }
 
     private string ModuleHelpText(ModuleInfo info)
     {
         var sb = new StringBuilder();
-        sb.AppendLine(CultureInfo.CurrentCulture, $"Cooldown planning: {(info.Info.PlanLevel > 0 ? $"L{info.Info.PlanLevel}" : "not supported")}");
+        sb.AppendLine(Loc.Tr(info.Info.PlanLevel > 0 ? $"Cooldown planning: L{info.Info.PlanLevel}" : "Cooldown planning: not supported"));
         if (info.Info.Contributors.Length > 0)
-            sb.AppendLine(CultureInfo.CurrentCulture, $"Contributors: {info.Info.Contributors}");
+            sb.AppendLine(Loc.Tr($"Contributors: {info.Info.Contributors}"));
         return sb.ToString();
     }
 

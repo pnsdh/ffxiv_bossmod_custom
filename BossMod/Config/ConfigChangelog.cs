@@ -19,7 +19,7 @@ abstract class ChangelogNotice
     {
         ImGui.Bullet();
         ImGui.SameLine();
-        ImGui.TextWrapped(txt);
+        ImGui.TextWrapped(Loc.Tr(txt));
     }
 }
 

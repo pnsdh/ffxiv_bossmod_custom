@@ -1,11 +1,13 @@
 """Lists UI strings that have no Korean translation yet.
 
 Scans config attributes (PropertyDisplay labels/tooltips, PropertyCombo values, GroupDetails/GroupPreset,
-SectionStart, ConfigDisplay names, config node names) and hint strings in the given module directories,
-and compares them against the tables in BossMod/Localization/LocKorean*.cs.
+SectionStart, ConfigDisplay names, config node names), UI text in BossMod (Loc.Tr calls, tab names, UIMisc.Button
+reasons, About/changelog helpers, slash command descriptions), and optionally hint and timeline state strings in the
+given module directories, and compares them against the tables in BossMod/Localization/LocKorean*.cs.
 
-Usage: python scripts/loc_extract.py [--hints DIR ...] [--all] [--json OUT]
+Usage: python scripts/loc_extract.py [--hints DIR ...] [--states DIR ...] [--all] [--json OUT]
   --hints DIR  also collect hints.Add(...) strings from .cs files under DIR (e.g. BossMod.Ultimate/Endwalker/Ultimate/TOP)
+  --states DIR also collect timeline state/phase names (StateMachineBuilder name arguments) under DIR
   --all        list every string, not only untranslated ones
   --json OUT   write [{"en", "kind", "file"}] to OUT instead of printing
 """
@@ -198,27 +200,59 @@ def collect_hints(path, rel, found):
             found.append((unescape(lm.group()), 'hint', rel))
 
 
-UI_CALLS = [
-    re.compile(r'Loc\.Tr\(\s*(?=\$?")'),  # explicit translation calls in UI code
-    re.compile(r'_tabs\.Add\(\s*(?=")'),  # UITabs names
-]
-UIMISC_BUTTON = re.compile(r'UIMisc\.(?:Button|DangerousButton)\(')
+# calls whose arguments are UI text: every top-level string literal inside the call is collected
+# (Loc.Tr in UI code, tab names, About/changelog helpers, slash command descriptions)
+UI_CALLS = re.compile(r'(?:\bLoc\.Tr|_tabs\.Add|\bDrawSection|\bBullet|\.SetSimpleHandler|\.SetComplexHandler)\(')
 
 
-def read_literal_at(text, i):
-    if text[i] == '$':
-        lit = read_interpolated(text, i)
-        return interp_to_pattern(lit) if lit else None
-    lm = re.match(r'"(?:[^"\\]|\\.)*"', text[i:])
-    return unescape(lm.group()) if lm else None
+def call_literals(text, i, stop_at_lambda=True):
+    # text[i] is just after '('; yields literals until the matching ')', skipping interpolation holes
+    depth = 0
+    while i < len(text):
+        c = text[i]
+        if c == '$' and text[i + 1:i + 2] == '"':
+            lit = read_interpolated(text, i)
+            yield interp_to_pattern(lit)
+            i += len(lit)
+            continue
+        if c == '"':
+            lm = re.match(r'"(?:[^"\\]|\\.)*"', text[i:])
+            yield unescape(lm.group())
+            i += len(lm.group())
+            continue
+        if c == '/' and text[i + 1:i + 2] == '/':
+            i = text.index('\n', i)
+            continue
+        if stop_at_lambda and c == '=' and text[i + 1:i + 2] == '>' and depth == 0:
+            return  # lambda argument (e.g. command handler body) is not UI text
+        if c in '([{':
+            depth += 1
+        elif c in ')]}':
+            if depth == 0:
+                return
+            depth -= 1
+        i += 1
+
+
+# StateMachineBuilder methods whose `name` argument is shown in the mechanic timeline ("Cur: ... Then: ...")
+STATE_CALLS = re.compile(r'\b(?:SimplePhase|SimpleState|Timeout|Condition|ConditionFork|ComponentCondition|ComponentConditionFork'
+                         r'|ActorCastStart|CastStart|ActorCastStartMulti|CastStartMulti|ActorCastStartFork|CastStartFork|ActorCastEnd|CastEnd'
+                         r'|ActorCast|Cast|ActorCastMulti|CastMulti|ActorTargetable|Targetable)(?:<[^()]*?>)?\(')
+
+
+def collect_states(path, rel, found):
+    text = path.read_text(encoding='utf-8-sig')
+    for m in STATE_CALLS.finditer(text):
+        for s in call_literals(text, m.end(), stop_at_lambda=False):
+            if re.search(r'[A-Za-z]', s):
+                found.append((s, 'state', rel))
 
 
 def collect_ui(path, rel, found):
     text = path.read_text(encoding='utf-8-sig')
-    for rx in UI_CALLS:
-        for m in rx.finditer(text):
-            s = read_literal_at(text, m.end())
-            if s:
+    for m in UI_CALLS.finditer(text):
+        for s in call_literals(text, m.end()):
+            if re.search(r'[A-Za-z]{2}', s):
                 found.append((s, 'ui', rel))
     # UIMisc.Button disabled reasons: every string literal argument after the label
     toks = list(tokens(text))
@@ -243,6 +277,7 @@ def known_translations():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--hints', nargs='*', default=[])
+    ap.add_argument('--states', nargs='*', default=[])
     ap.add_argument('--all', action='store_true')
     ap.add_argument('--json')
     args = ap.parse_args()
@@ -260,6 +295,9 @@ def main():
     for d in args.hints:
         for f in sorted((ROOT / d).rglob('*.cs')):
             collect_hints(f, f.relative_to(ROOT).as_posix(), found)
+    for d in args.states:
+        for f in sorted((ROOT / d).rglob('*.cs')):
+            collect_states(f, f.relative_to(ROOT).as_posix(), found)
 
     known = known_translations()
     seen, result = set(), []
