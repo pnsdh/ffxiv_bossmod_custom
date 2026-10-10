@@ -225,10 +225,10 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
     }
 
     // 09STOP spots for boss monitor on the left (west cleave), mirrored for the right: the 09STOP diagram with N1/N4/N5 hugging the boss cleave line from outside
-    // and N2 from inside, which lets N3 move ~4y closer to the center; everyone is at least 8.5y apart (hit players explode in 7y circles; the diagram has M1-M2
-    // at 7.8y) and monitors facing exactly E/N/S keep +-12..16 degrees of tolerance (diagram: +-8..11)
+    // and N2 from inside, which lets N3 move ~3y closer to the center; N1/N5 1y from the arena edge; everyone is at least 8.5y apart (hit players explode
+    // in 7y circles; the diagram has M1-M2 at 7.8y) and monitors facing exactly E/N/S keep +-11..15 degrees of tolerance (diagram: +-8..11)
     private static readonly (float x, float z)[] _monitorSpots09STOP = [(8, -12), (16, -8.5f), (12.5f, 5.5f)];
-    private static readonly (float x, float z)[] _otherSpots09STOP = [(1, -17.5f), (-1.5f, -1), (-10, -0.5f), (1, 9), (1, 17.5f)];
+    private static readonly (float x, float z)[] _otherSpots09STOP = [(1, -19), (-1.5f, -1), (-11, -0.5f), (1, 10), (1, 19)];
     private const float _explosionRadius = 7;
 
     private WPos Spot09STOP(bool monitor, int order)

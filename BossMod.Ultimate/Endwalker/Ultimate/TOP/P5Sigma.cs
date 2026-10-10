@@ -254,8 +254,8 @@ class P5Sigma(BossModule module) : BossComponent(module)
 
         if (!_waveCannonsDone)
         {
-            // everyone at the same distance from the center: close - in front of the floor markers, far - hugging the arena edge (radius 20 - hitbox)
-            var radius = ActiveGlitch == Glitch.Mid ? 12 : 19.5f;
+            // everyone at the same distance from the center: close - in front of the floor markers, far - 1y from the arena edge
+            var radius = ActiveGlitch == Glitch.Mid ? 12 : 19;
             yield return radius * p.SpreadAngle.ToDirection();
         }
     }
