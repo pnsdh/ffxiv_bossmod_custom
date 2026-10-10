@@ -245,6 +245,8 @@ class P5Delta(BossModule module) : BossComponent(module)
 
         if (NumPunchesSpawned < PartyState.MaxPartySize)
         {
+            if (!_config.P5ShowCandidateSpots)
+                yield break;
             // no punches yet, show all 4 possible spots: inner pairs on the number marker lines, outer blue pair close together next to omega, outer green pair behind the inner one
             if (p.IsLocal)
             {
@@ -342,6 +344,8 @@ class P5Delta(BossModule module) : BossComponent(module)
 
         if (NumPunchesSpawned < PartyState.MaxPartySize)
         {
+            if (!_config.P5ShowCandidateSpots)
+                yield break;
             // no punches yet, show all 4 possible spots
             if (p.IsLocal)
             {

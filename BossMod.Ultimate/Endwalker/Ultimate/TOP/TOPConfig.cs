@@ -95,4 +95,7 @@ public partial class TOPConfig() : ConfigNode()
     [PropertyDisplay("P5 Sigma: layout", tooltip: "09STOP: line up between the arms (circle, triangle, square, cross from left), left double pair N/S, right double pair W/E, single pairs at their fist.\nTower and Hello World spots are not shown for 09STOP yet.")]
     [PropertyCombo("LPDU", "09STOP")]
     public bool P5Sigma09STOP = true;
+
+    [PropertyDisplay("P5: show candidate spots for players whose exact spot isn't known yet (3 or more spots)", tooltip: "E.g. Hello World baiters, whose roles depend on head markers placed by the party. Up to 2 spots are always shown.")]
+    public bool P5ShowCandidateSpots = false;
 }

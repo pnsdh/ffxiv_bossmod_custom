@@ -585,8 +585,21 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
             yield break;
         }
 
-        // the other six players' spots (bind 1-3: NW/N/NE edge, number 1-3: S edge and around the arm on the rotation side) depend on the 09STOP marks,
-        // which we can't know, so nothing is shown for them
+        // the other six players' spots depend on the 09STOP marks, which we can't know, so they can only get all spots they can take (if enabled):
+        // no dynamis -> number spots only (S edge and around the arm on the rotation side), dynamis -> also bind spots (NW/N/NE edge)
+        if (!Service.Config.Get<TOPConfig>().P5ShowCandidateSpots)
+            yield break;
+        var arm = Module.Enemies(OID.RightArmUnit).Select(a => Angle.FromDirection(a.Position - Module.Center)).Where(a => sign * (a - south).Normalized().Rad > 0).Cast<Angle?>().FirstOrDefault()
+            ?? south + sign * 47.Degrees();
+        yield return spot(south, 19); // number 1
+        yield return spot(arm + sign * 13.5f.Degrees(), 19); // number 2
+        yield return spot(arm - sign * 13.5f.Degrees(), 19); // number 3
+        if (_dynamisStacks[slot])
+        {
+            yield return spot(south + 180.Degrees(), 19); // bind 2
+            yield return spot(south + 137.Degrees(), 19); // bind 1/3
+            yield return spot(south - 137.Degrees(), 19);
+        }
     }
 
     private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
@@ -609,7 +622,7 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
         {
             yield return Module.Center + 10 * _lasers.StartingDir.ToDirection();
         }
-        else
+        else if (Service.Config.Get<TOPConfig>().P5ShowCandidateSpots)
         {
             // TODO: figure out a way to assign safespots - for now, assume no-dynamis always go south (and so can be second far baiters or any near baiters), dynamis can go anywhere
             yield return Module.Center + 19 * _lasers.StartingDir.ToDirection(); // '4' - second far bait spot

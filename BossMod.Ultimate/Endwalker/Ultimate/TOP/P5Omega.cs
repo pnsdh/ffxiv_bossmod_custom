@@ -183,7 +183,7 @@ class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackS
         {
             yield return Module.Center + 10 * (_boss.Rotation + 2.05f * _bossAngle).ToDirection();
         }
-        else
+        else if (Service.Config.Get<TOPConfig>().P5ShowCandidateSpots)
         {
             // TODO: assignments...
             yield return Module.Center + 19 * (_boss.Rotation - 0.05f * _bossAngle).ToDirection(); // '1' - first distant
@@ -243,7 +243,7 @@ class P5OmegaBlaster : Components.BaitAwayTethers
             yield return p + 10 * toBoss.OrthoL();
             yield return p + 10 * toBoss.OrthoR();
         }
-        else
+        else if (Service.Config.Get<TOPConfig>().P5ShowCandidateSpots)
         {
             // TODO: assignments...
             yield return Module.Center + 19 * toBoss.OrthoL(); // '1' - first distant
