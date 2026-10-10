@@ -557,6 +557,8 @@ class P5DeltaHyperPulse(BossModule module) : Components.GenericAOEs(module)
 class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
     private readonly P5Delta? _delta = module.FindComponent<P5Delta>();
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
+    private DateTime _resolve;
     private Actor? _boss;
     private Angle _bossAngle;
     private BitMask _bossIntendedTargets;
@@ -588,6 +590,53 @@ class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackS
             if (hit != _bossIntendedTargets[slot])
                 hints.Add(hit ? "GTFO from boss monitor!" : "Soak boss monitor!");
         }
+    }
+
+    // face so that the monitor hits exactly the intended targets, based on actual positions (the middle of the widest valid range);
+    // if that's impossible, minimize the damage: never add a second hit to someone in the boss monitor, then hit the intended targets, then avoid others
+    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
+    {
+        if (actor != _player || _boss == null || !_config.P3MonitorForbiddenDirections)
+            return;
+
+        var bossDir = (_boss.Rotation + _bossAngle).ToDirection();
+        List<(WPos pos, bool intended, bool hitByBoss)> players = [];
+        foreach (var (i, p) in Raid.WithSlot().Exclude(actor))
+            players.Add((p.Position, _playerIntendedTargets[i], (p.Position - _boss.Position).Dot(bossDir) > -0.5f));
+
+        var cost = new int[360];
+        for (var a = 0; a < 360; ++a)
+        {
+            var dir = a.Degrees().ToDirection();
+            foreach (var (pos, intended, hitByBoss) in players)
+            {
+                var d = (pos - actor.Position).Dot(dir);
+                if (d > -0.5f && hitByBoss)
+                    cost[a] += 1000;
+                if (intended && d <= 0.5f)
+                    cost[a] += 10;
+                else if (!intended && d > -0.5f)
+                    cost[a] += 1;
+            }
+        }
+        var best = cost.Min();
+        int bestStart = -1, bestLength = 0;
+        for (var start = 0; start < 360; ++start)
+        {
+            if (cost[start] != best || cost[(start + 359) % 360] == best && cost.Any(c => c != best))
+                continue;
+            var length = 0;
+            while (length < 360 && cost[(start + length) % 360] == best)
+                ++length;
+            if (length > bestLength)
+                (bestStart, bestLength) = (start, length);
+        }
+        if (bestLength is 0 or 360)
+            return;
+
+        var facing = (bestStart + bestLength * 0.5f).Degrees() - _playerAngle;
+        var allowed = Math.Clamp(bestLength * 0.5f - 2, 2, 15);
+        hints.ForbiddenDirections.Add(((facing + 180.Degrees()).Normalized(), (180 - allowed).Degrees(), _resolve));
     }
 
     public override void DrawArenaBackground(int pcSlot, Actor pc)
@@ -625,6 +674,7 @@ class P5DeltaOversampledWaveCannon(BossModule module) : Components.UniformStackS
             return;
         _boss = caster;
         _bossAngle = angle;
+        _resolve = Module.CastFinishAt(spell);
         if (_delta == null)
             return;
         var bossSide = angle.Rad > 0 ? P5Delta.SideAssignment.South : P5Delta.SideAssignment.North;

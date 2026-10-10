@@ -22,6 +22,7 @@ static partial class LocKorean
         ("09STOP (TRHM)", "09STOP (TRHM)"),
         ("P5 Delta: layout", "P5 델타: 배치"),
         ("P5 Sigma: layout", "P5 시그마: 배치"),
+        ("Monitors (P3, P5 Delta): automatically face correct direction before mechanic resolves", "모니터 (P3, P5 델타): 기믹 처리 전 자동으로 올바른 방향 바라보기"),
         ("P5: show candidate spots for players whose exact spot isn't known yet (3 or more spots)", "P5: 정확한 자리를 알 수 없는 사람에게 후보 자리 표시 (3곳 이상)"),
         ("E.g. Hello World baiters, whose roles depend on head markers placed by the party. Up to 2 spots are always shown.", "예: 헬로월드 유도자처럼 파티가 찍는 머리 징에 따라 역할이 정해지는 경우입니다. 2곳 이하는 항상 표시합니다."),
         ("09STOP: line up between the arms (circle, triangle, square, cross from left), left double pair N/S, right double pair W/E, single pairs at their fist.\nTower and Hello World spots are not shown for 09STOP yet.", "09STOP: 아카이브 암 사이에 왼쪽부터 동그라미, 세모, 네모, 엑스로 정렬하고, 징 2개 왼쪽 조는 12시/6시, 오른쪽 조는 9시/3시, 징 1개 조는 각자 주먹 쪽으로 산개합니다.\n탑과 헬로월드 자리는 09STOP에서 아직 표시하지 않습니다."),

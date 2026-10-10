@@ -96,8 +96,8 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
     {
-        foreach (var p in SafeSpots(pcSlot))
-            Arena.AddCircle(p.pos, 1, p.assigned ? ArenaColor.Safe : ArenaColor.Danger);
+        foreach (var p in SafeSpots(pcSlot).Where(p => p.assigned))
+            Arena.AddCircle(p.pos, 1, ArenaColor.Safe);
     }
 
     public override void OnStatusGain(Actor actor, in ActorStatus status)
