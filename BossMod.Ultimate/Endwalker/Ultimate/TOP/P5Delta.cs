@@ -323,7 +323,7 @@ class P5Delta(BossModule module) : BossComponent(module)
             }
             else if (_nearWorld == Raid[slot])
             {
-                yield return TransformRelNorth(-12.3f, 13.8f * safeDirZ); // outside the omega-side number marker
+                yield return TransformRelNorth(-12.6f, 14.2f * safeDirZ); // at the edge, 1 cell from the omega-side number marker away from the cannon
             }
             else
             {
