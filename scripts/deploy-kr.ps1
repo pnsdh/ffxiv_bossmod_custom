@@ -50,7 +50,9 @@ if ($ModulesOnly) {
 New-Item -ItemType Directory -Force $target | Out-Null
 # skip the packager's BossMod\latest.zip subfolder
 $files = Get-ChildItem $publish | Where-Object { $_.Name -ne 'BossMod' }
-$files | Copy-Item -Destination $target -Recurse -Force
+# BossMod.dll last: its change is what triggers the reload, so everything else must already be in place
+$files | Where-Object { $_.Name -ne 'BossMod.dll' } | Copy-Item -Destination $target -Recurse -Force
+Copy-Item (Join-Path $publish 'BossMod.dll') $target -Force
 # remove leftovers from older builds
 Get-ChildItem $target | Where-Object { $files.Name -notcontains $_.Name } | Remove-Item -Recurse -Force
 Write-Host "Deployed to $target"
