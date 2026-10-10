@@ -16,7 +16,7 @@ public sealed class LocalizationConfig : ConfigNode
     }
 
     [PropertyDisplay("UI language", tooltip: "Translates settings and mechanic hints. Text without a translation is shown in English.")]
-    public UILanguage Language = UILanguage.English;
+    public UILanguage Language = UILanguage.Korean;
 
     public override void DrawCustom(UITree tree, WorldState ws)
     {
