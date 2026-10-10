@@ -315,6 +315,14 @@ class P5SigmaWaveCannon(BossModule module) : Components.GenericBaitAway(module, 
 class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
 {
     private int _soakerSum;
+    private readonly WPos?[] _safeSpots09STOP = new WPos?[PartyState.MaxPartySize];
+
+    public override void DrawArenaForeground(int pcSlot, Actor pc)
+    {
+        base.DrawArenaForeground(pcSlot, pc);
+        if (Towers.Count > 0 && _safeSpots09STOP[pcSlot] is WPos spot)
+            Arena.AddCircle(spot, 1, ArenaColor.Safe);
+    }
 
     public override void OnActorCreated(Actor actor)
     {
@@ -339,6 +347,7 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
         {
             ++NumCasts;
             Towers.Clear();
+            Array.Fill(_safeSpots09STOP, null);
         }
     }
 
@@ -411,6 +420,7 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
 
         foreach (ref var tower in Towers.AsSpan())
             tower.ForbiddenSoakers = new(0xFF);
+        var assigned = Utils.MakeArray(sigma.Players.Length, -1);
 
         for (var i = 0; i < sigma.Players.Length; ++i)
         {
@@ -430,7 +440,27 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
                     (best, bestDist) = (t, dist);
             }
             if (best >= 0)
+            {
                 Towers.AsSpan()[best].ForbiddenSoakers.Clear(i);
+                assigned[i] = best;
+            }
+        }
+
+        // close: stand in the tower center (two soakers share it); far: at the tower edge, as far as possible from the tethered partner's tower
+        for (var i = 0; i < assigned.Length; ++i)
+        {
+            if (assigned[i] < 0)
+                continue;
+            var pos = Towers[assigned[i]].Position;
+            var partner = sigma.Players[i].PartnerSlot;
+            if (far && partner >= 0 && assigned[partner] >= 0 && assigned[partner] != assigned[i])
+            {
+                pos += 2.5f * (pos - Towers[assigned[partner]].Position).Normalized(); // tower radius 3 - hitbox
+                var offset = pos - Module.Center;
+                if (offset.Length() > 19)
+                    pos = Module.Center + 19 * offset.Normalized(); // keep 1y from the arena edge
+            }
+            _safeSpots09STOP[i] = pos;
         }
     }
 
