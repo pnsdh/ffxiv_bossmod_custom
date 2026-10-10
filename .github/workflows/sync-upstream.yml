@@ -1,0 +1,79 @@
+name: Sync upstream
+
+# Periodically merges upstream (awgil/ffxiv_bossmod) master into this fork's master.
+# - Clean merge -> push, then call release-custom.yml to publish a new release right away
+#   (pushes made with GITHUB_TOKEN don't trigger other workflows, so it's called explicitly).
+# - Merge conflict, or upstream changes touching .github/workflows (GITHUB_TOKEN can't push those)
+#   -> the run fails, which sends a notification email. Merge manually:
+#      git fetch upstream && git merge upstream/master && git push
+on:
+  schedule:
+    - cron: '23 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    outputs:
+      merged: ${{ steps.merge.outputs.merged }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Merge upstream/master
+        id: merge
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/awgil/ffxiv_bossmod.git
+          git fetch --no-tags upstream master
+
+          if git merge-base --is-ancestor upstream/master HEAD; then
+            echo "Already up to date with upstream."
+            echo "merged=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          before=$(git rev-parse HEAD)
+          if ! git merge --no-edit upstream/master; then
+            {
+              echo "## Merge conflict with upstream/master"
+              echo "Resolve locally: \`git fetch upstream && git merge upstream/master\`, then push."
+              echo '```'
+              git diff --name-only --diff-filter=U
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            git merge --abort
+            echo "::error::Merge conflict with upstream/master - see job summary."
+            exit 1
+          fi
+
+          workflows=$(git diff --name-only "$before" HEAD -- .github/workflows)
+          if [ -n "$workflows" ]; then
+            {
+              echo "## Upstream changed workflow files"
+              echo "GITHUB_TOKEN can't push these. Merge locally: \`git fetch upstream && git merge upstream/master\`, then push."
+              echo '```'
+              echo "$workflows"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Upstream changes include .github/workflows - see job summary."
+            exit 1
+          fi
+
+          git push origin HEAD:master
+          echo "merged=true" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: sync
+    if: needs.sync.outputs.merged == 'true'
+    uses: ./.github/workflows/release-custom.yml

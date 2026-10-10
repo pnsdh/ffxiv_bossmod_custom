@@ -1,0 +1,109 @@
+name: Build & Release (Custom)
+
+# Builds master and publishes a GitHub Release (latest.zip + BossMod.json) that
+# pnsdh/DalamudPlugins' pluginmaster picks up.
+# Version = <first three parts of upstream csproj Version>.<commit count>, so every new
+# master commit (own push or upstream merge) gets a strictly increasing version.
+on:
+  push:
+    branches: [ master ]
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-custom
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Determine version
+        id: ver
+        shell: pwsh
+        run: |
+          [xml]$csproj = Get-Content "BossMod/BossMod.csproj"
+          $base = ($csproj.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1)
+          if (-not $base) { throw "No <Version> found in csproj" }
+          $parts = $base.Split('.')
+          $count = git rev-list --count HEAD
+          $version = "$($parts[0]).$($parts[1]).$($parts[2]).$count"
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "tag=v$version"    | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Plugin version: $version (upstream $base)"
+
+      - name: Check whether this version was already released
+        id: check
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "${{ steps.ver.outputs.tag }}" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release ${{ steps.ver.outputs.tag }} already exists - skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup .NET 10
+        if: steps.check.outputs.skip == 'false'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Patch manifest
+        if: steps.check.outputs.skip == 'false'
+        shell: pwsh
+        run: |
+          $path = "BossMod/BossMod.json"
+          $m = Get-Content $path -Raw | ConvertFrom-Json
+          $m.Name = "Boss Mod (Custom)"
+          $m.RepoUrl = "https://github.com/${{ github.repository }}"
+          $m | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding utf8
+
+      - name: Download Dalamud (dev distribution)
+        if: steps.check.outputs.skip == 'false'
+        shell: pwsh
+        run: |
+          $dalamud = "$env:AppData\XIVLauncher\addon\Hooks\dev"
+          New-Item -ItemType Directory -Force -Path $dalamud | Out-Null
+          Invoke-WebRequest -Uri "https://goatcorp.github.io/dalamud-distrib/latest.zip" -OutFile "dalamud.zip"
+          Expand-Archive -Path "dalamud.zip" -DestinationPath $dalamud -Force
+
+      - name: Build (Release)
+        if: steps.check.outputs.skip == 'false'
+        # LocalCS=false: use Dalamud's FFXIVClientStructs (matches the client it runs on), like the official package
+        run: dotnet publish BossMod/BossMod.csproj -c Release -p:LocalCS=false -p:Version=${{ steps.ver.outputs.version }} --nologo
+
+      - name: Collect release assets
+        if: steps.check.outputs.skip == 'false'
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem "BossMod/bin" -Recurse -Filter "latest.zip" | Select-Object -First 1
+          if (-not $zip) { throw "latest.zip not found under BossMod/bin" }
+          $json = Get-ChildItem $zip.DirectoryName -Filter "BossMod.json" | Select-Object -First 1
+          if (-not $json) { throw "BossMod.json not found next to latest.zip" }
+          New-Item -ItemType Directory -Force -Path release_assets | Out-Null
+          Copy-Item $zip.FullName, $json.FullName -Destination release_assets
+          Get-Content release_assets/BossMod.json
+
+      - name: Publish GitHub Release
+        if: steps.check.outputs.skip == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.ver.outputs.tag }}" \
+            release_assets/latest.zip release_assets/BossMod.json \
+            --repo "${{ github.repository }}" \
+            --target "$(git rev-parse HEAD)" \
+            --title "${{ steps.ver.outputs.tag }}" \
+            --notes "Built from $(git rev-parse --short HEAD): $(git log -1 --format=%s)"
