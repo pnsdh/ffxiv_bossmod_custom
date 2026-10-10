@@ -1,4 +1,4 @@
-# Builds the plugin against the KR Dalamud and deploys it to the KR dev plugin folder.
+﻿# Builds the plugin against the KR Dalamud and deploys it to the KR dev plugin folder.
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\deploy-kr.ps1 [-ModulesOnly]
 #   -ModulesOnly: only copy module dlls (BossMod.Ultimate etc.) into %APPDATA%\vbm\modules,
 #                 which the running plugin hot-reloads without restarting the game.
@@ -27,7 +27,17 @@ Write-Host "Version: $version"
 dotnet publish (Join-Path $root 'BossMod\BossMod.csproj') -c Release -p:LocalCS=false -p:Version=$version
 if ($LASTEXITCODE -ne 0) { throw "Build failed" }
 
-$moduleDlls = 'BossMod.Autorotation.dll', 'BossMod.Modules.dll', 'BossMod.Ultimate.dll'
+# same manifest changes as release-custom.yml
+$manifestPath = Join-Path $publish 'BossMod.json'
+$m = Get-Content $manifestPath -Raw | ConvertFrom-Json
+$m.Name = 'Boss Mod (Custom)'
+$m.RepoUrl = 'https://github.com/pnsdh/ffxiv_bossmod_custom'
+$m.Punchline = '레이드 기믹 실수 방지 (한국 서버 공략 옵션 추가)'
+$m.Description = '보스 기믹 레이더, 자동 로테이션, 쿨다운 플래너, AI를 제공하는 플러그인입니다. 본가(awgil/ffxiv_bossmod)를 자동으로 따라가며, 한국 서버 공략에 맞춘 옵션과 한국어 UI를 추가한 버전입니다.'
+$m | Add-Member -NotePropertyName Tags -NotePropertyValue @('boss', 'raid', 'radar', 'korean', 'kr') -Force
+[IO.File]::WriteAllText($manifestPath, ($m | ConvertTo-Json -Depth 10), (New-Object Text.UTF8Encoding $false))
+
+$moduleDlls ='BossMod.Autorotation.dll', 'BossMod.Modules.dll', 'BossMod.Ultimate.dll'
 if ($ModulesOnly) {
     New-Item -ItemType Directory -Force $modules | Out-Null
     foreach ($m in $moduleDlls) { Copy-Item (Join-Path $publish $m) $modules -Force }

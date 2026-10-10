@@ -67,6 +67,9 @@ jobs:
           $m = Get-Content $path -Raw | ConvertFrom-Json
           $m.Name = "Boss Mod (Custom)"
           $m.RepoUrl = "https://github.com/${{ github.repository }}"
+          $m.Punchline = "레이드 기믹 실수 방지 (한국 서버 공략 옵션 추가)"
+          $m.Description = "보스 기믹 레이더, 자동 로테이션, 쿨다운 플래너, AI를 제공하는 플러그인입니다. 본가(awgil/ffxiv_bossmod)를 자동으로 따라가며, 한국 서버 공략에 맞춘 옵션과 한국어 UI를 추가한 버전입니다."
+          $m | Add-Member -NotePropertyName Tags -NotePropertyValue @("boss", "raid", "radar", "korean", "kr") -Force
           $m | ConvertTo-Json -Depth 10 | Set-Content $path -Encoding utf8
 
       - name: Download KR Dalamud

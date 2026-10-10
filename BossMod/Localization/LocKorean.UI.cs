@@ -282,6 +282,7 @@ static partial class LocKorean
         ("enable AI mode", "AI 모드 켜기"),
         ("disable AI mode", "AI 모드 끄기"),
         ("toggle AI mode", "AI 모드 켜기/끄기"),
+        ("alias for {0} {1}", "{0} {1}와(과) 같은 명령어"),
         ("enable multibox mode and follow party member with specified name or at specified slot", "멀티박스 모드를 켜고 지정한 이름 또는 슬롯의 파티원 따라가기"),
     ];
 }

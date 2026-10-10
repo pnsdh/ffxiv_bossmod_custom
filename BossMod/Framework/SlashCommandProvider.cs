@@ -83,7 +83,7 @@ public sealed class SlashCommandProvider(ICommandManager commandManager, string 
     public void RegisterAlias(string alias, string prefix)
     {
         var handler = Subcommands[prefix];
-        commandManager.AddHandler(alias, new CommandInfo((cmd, args) => handler.Execute(args)) { HelpMessage = $"alias for {rootCommand} {prefix}" });
+        commandManager.AddHandler(alias, new CommandInfo((cmd, args) => handler.Execute(args)) { HelpMessage = Loc.Tr($"alias for {rootCommand} {prefix}") });
         _aliases.Add(alias);
     }
 
