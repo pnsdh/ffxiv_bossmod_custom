@@ -99,7 +99,7 @@ public class ColumnPlannerTrackStrategy(Timeline timeline, StateMachineTree tree
                     ImGui.CloseCurrentPopup();
                 }
                 ImGui.Separator();
-                if (ImGui.Selectable(Loc.Tr("Hide column")))
+                if (ImGui.Selectable("Hide column"))
                     Width = 0;
             }
         }

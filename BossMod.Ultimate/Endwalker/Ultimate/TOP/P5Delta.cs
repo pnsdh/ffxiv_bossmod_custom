@@ -192,6 +192,12 @@ class P5Delta(BossModule module) : BossComponent(module)
 
     private void InitAssignments()
     {
+        if (_localTethers.Count != 2 || _remoteTethers.Count != 2)
+        {
+            ReportError($"Unexpected tether count: {_localTethers.Count} local, {_remoteTethers.Count} remote");
+            return; // e.g. someone died before the tethers appeared; assignments below would be wrong (or throw)
+        }
+
         // 1. assign initial inner/outer
         float slotToOffsetX(int slot) => _eyeDir.OrthoR().Dot((Raid[slot]?.Position ?? Module.Center) - Module.Center);
         float pairToOffsetX((int s1, int s2) slots) => MathF.Abs(slotToOffsetX(slots.s1) + slotToOffsetX(slots.s2));

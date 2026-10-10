@@ -11,6 +11,7 @@ class P5Sigma(BossModule module) : BossComponent(module)
         public int PartnerSlot;
         public bool WaveCannonTarget;
         public Angle SpreadAngle;
+        public Angle? ActualSpreadAngle; // where the player actually stood when the wave cannons resolved
     }
 
     public Glitch ActiveGlitch;
@@ -74,8 +75,13 @@ class P5Sigma(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID == AID.SigmaWaveCannonAOE)
+        if ((AID)spell.Action.ID == AID.SigmaWaveCannonAOE && !_waveCannonsDone)
+        {
             _waveCannonsDone = true;
+            foreach (var (i, p) in Raid.WithSlot())
+                if ((p.Position - Module.Center).LengthSq() > 25)
+                    Players[i].ActualSpreadAngle = Angle.FromDirection(p.Position - Module.Center);
+        }
     }
 
     public override void OnEventIcon(Actor actor, uint iconID, ulong targetID)
@@ -424,7 +430,8 @@ class P5SigmaTowers(BossModule module) : Components.GenericTowers(module)
 
         for (var i = 0; i < sigma.Players.Length; ++i)
         {
-            var spreadAngle = sigma.Players[i].SpreadAngle;
+            // 09STOP: the macro of the floor marker the player actually stood on (which may differ from the assigned spread spot)
+            var spreadAngle = sigma.Players[i].ActualSpreadAngle ?? sigma.Players[i].SpreadAngle;
             if (sigma.Players[i].Order == 0)
                 continue; // not assigned
             // BossMod angles grow counterclockwise in map view (north = 180), compass angles clockwise (north = 0)
