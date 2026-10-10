@@ -35,8 +35,12 @@ if ($ModulesOnly) {
     return
 }
 
-if (Test-Path $target) { Remove-Item -Recurse -Force $target }
+# overwrite files in place instead of recreating the folder: Dalamud's dev plugin auto-reload watches this folder,
+# and deleting it breaks the watcher
 New-Item -ItemType Directory -Force $target | Out-Null
 # skip the packager's BossMod\latest.zip subfolder
-Get-ChildItem $publish | Where-Object { $_.Name -ne 'BossMod' } | Copy-Item -Destination $target -Recurse -Force
+$files = Get-ChildItem $publish | Where-Object { $_.Name -ne 'BossMod' }
+$files | Copy-Item -Destination $target -Recurse -Force
+# remove leftovers from older builds
+Get-ChildItem $target | Where-Object { $files.Name -notcontains $_.Name } | Remove-Item -Recurse -Force
 Write-Host "Deployed to $target"
