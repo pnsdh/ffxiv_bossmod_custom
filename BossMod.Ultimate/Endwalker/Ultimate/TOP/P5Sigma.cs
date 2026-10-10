@@ -565,10 +565,51 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
             _dynamisStacks.Set(Raid.FindSlot(actor.InstanceID));
     }
 
+    // 09STOP, omega F at rel north (lasers start at rel south): measured from the 09STOP diagrams, edge spots 1y from the arena edge
+    // - distant world target: rel north, 3rd cell from the center; near world target: 90 degrees from rel south in the laser rotation direction, at the edge
+    // - bind 1/2/3 (dynamis, no hello world): NW / N / NE edge; number 1/2/3: S edge, 2 cells past the arm on the rotation side, 2 cells before it
+    // which of the six non-target players takes which spot depends on the 09STOP marks, so they get all spots they can take: no dynamis -> number spots only
+    private IEnumerable<WPos> SafeSpots09STOP(int slot, Actor actor)
+    {
+        var south = _lasers!.StartingDir;
+        var sign = _lasers.Rotation.Rad > 0 ? 1 : -1;
+        WPos spot(Angle dir, float radius) => Module.Center + radius * dir.ToDirection();
+
+        if (actor == DistantWorld)
+        {
+            yield return spot(south + 180.Degrees(), 10);
+            yield break;
+        }
+        if (actor == NearWorld)
+        {
+            yield return spot(south + sign * 90.Degrees(), 19);
+            yield break;
+        }
+
+        var arm = Module.Enemies(OID.RightArmUnit).Select(a => Angle.FromDirection(a.Position - Module.Center)).Where(a => sign * (a - south).Normalized().Rad > 0).Cast<Angle?>().FirstOrDefault()
+            ?? south + sign * 47.Degrees();
+        yield return spot(south, 19); // number 1
+        yield return spot(arm + sign * 13.5f.Degrees(), 19); // number 2
+        yield return spot(arm - sign * 13.5f.Degrees(), 19); // number 3
+        if (_dynamisStacks[slot])
+        {
+            yield return spot(south + 180.Degrees(), 19); // bind 2
+            yield return spot(south + 137.Degrees(), 19); // bind 1/3
+            yield return spot(south - 137.Degrees(), 19);
+        }
+    }
+
     private IEnumerable<WPos> SafeSpots(int slot, Actor actor)
     {
-        if (_lasers == null || Service.Config.Get<TOPConfig>().P5Sigma09STOP) // note: we assume StartingDir is relative south, Rotation is +- 9 degrees; LPDU-specific spots
+        if (_lasers == null) // note: we assume StartingDir is relative south, Rotation is +- 9 degrees
             yield break;
+
+        if (Service.Config.Get<TOPConfig>().P5Sigma09STOP)
+        {
+            foreach (var p in SafeSpots09STOP(slot, actor))
+                yield return p;
+            yield break;
+        }
 
         if (actor == NearWorld)
         {
