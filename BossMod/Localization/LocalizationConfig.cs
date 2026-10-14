@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using BossMod.Autorotation;
+using Dalamud.Bindings.ImGui;
 using System.IO;
 
 namespace BossMod;
@@ -20,7 +21,7 @@ public sealed class LocalizationConfig : ConfigNode
 
     private string _lastExport = "";
 
-    public override void DrawCustom(UITree tree, WorldState ws)
+    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
     {
         if (Language == UILanguage.English)
             return;

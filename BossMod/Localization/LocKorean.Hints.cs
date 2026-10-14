@@ -1131,5 +1131,53 @@ static partial class LocKorean
         // BossMod/Modules/DemoModule.cs
         ("Hint", "힌트"),
         ("Risk", "위험"),
+
+        // BossMod.Modules/Global/Crucible/Board3/GuttlerTheGutter.cs
+        ("Bait away from statue!", "석상에서 떨어져서 유도!"),
+
+        // BossMod.Modules/Heavensward/Trial/T01Ravana.cs
+        ("Charge #{0}: go to the edge, away from the raid!", "돌진 #{0}: 공격대에서 떨어져 가장자리로!"),
+        ("Tankbuster (multi-hit)", "탱버 (연타)"),
+
+        // BossMod.Modules/Heavensward/Trial/T02Bismarck.cs
+        ("Pull the Sanuwas apart!", "사누와끼리 떨어뜨리세요!"),
+        ("Get on Bismarck's back!", "비스마르크 등에 올라타세요!"),
+        ("Use the field generator!", "마도 필드 발생기를 사용하세요!"),
+        ("Fire the Dragonkiller cannons!", "대 드래곤 쇠뇌를 쏘세요!"),
+
+        // BossMod.Modules/RealmReborn/Alliance/A32AngraMainyu/A32AngraMainyu.cs
+        ("Stand on red (Ireful) side!", "빨간색(분노) 쪽에 서세요!"),
+        ("Stand on white (Sullen) side!", "흰색(비탄) 쪽에 서세요!"),
+        ("Safe count ({0}) - stay", "안전한 숫자({0}) - 그대로 있으세요"),
+        ("Roulette: kill hourglasses ({0} left)!", "룰렛: 모래시계 처치 ({0}개 남음)!"),
+        ("Roulette: GTFO from cone!", "룰렛: 부채꼴에서 나가세요!"),
+        ("Cleanse your doom on glowy platform!", "빛나는 발판에서 죽음의 선고를 해제하세요!"),
+
+        // BossMod.Modules/RealmReborn/Alliance/A33QueenScylla/A33QueenScylla.cs
+        ("Open chest to summon Xande", "상자를 열어 시황제 잔데 소환"),
+
+        // BossMod.Modules/RealmReborn/Dungeon/D04Halatali/D042ThunderclapGuivre.cs
+        ("Get to dry ground!", "물이 없는 땅으로 가세요!"),
+
+        // BossMod.Modules/Shadowbringers/Raid/E08Shiva.cs
+        ("Slippery floor. Careful!", "미끄러운 바닥. 조심하세요!"),
+        ("Crystal pulse in {0}s", "수정 파동까지 {0}초"),
+
+        // BossMod.Modules/Shadowbringers/Raid/E09CloudOfDarkness.cs
+        ("GTFO from tile! About to collapse!", "타일에서 나가세요! 곧 무너집니다!"),
+
+        // BossMod.Modules/Shadowbringers/Raid/E12EdensPromise.cs
+        ("Stack on laser!", "레이저 쉐어!"),
+
+        // BossMod.Modules/Shadowbringers/Trial/T01Titania.cs
+        ("Stack in the puddle!", "장판 안에서 쉐어!"),
+
+        // BossMod.Modules/Stormblood/Trial/T01Susano.cs
+        ("Break the stone with the trapped player!", "사람이 갇힌 바위를 부수세요!"),
+        ("Pop lightning orbs, one player each", "번개 구체를 한 명씩 터뜨리세요"),
+
+        // BossMod.Modules/Stormblood/Trial/T02Lakshmi.cs
+        ("Use Vril!", "락슈미 에테르를 사용하세요!"),
+        ("Grab an orb to refill Vril", "구슬을 먹어 락슈미 에테르 충전"),
     ];
 }

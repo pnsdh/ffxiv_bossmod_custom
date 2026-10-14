@@ -47,7 +47,7 @@ public static class CustomEdition
                 ? $"{conflict} 플러그인이 함께 켜져 있어서 Boss Mod (Custom)을 일시 중지했습니다. 둘 중 하나만 켜 주세요."
                 : "함께 켜져 있던 플러그인이 꺼져서 Boss Mod (Custom)을 다시 시작합니다.";
             Service.Log($"[Custom] conflicting plugin loaded: {conflict ?? "none"}");
-            Service.ShowNotification(msg, Paused ? NotificationType.Warning : NotificationType.Info);
+            Service.ShowNotification(msg, "Boss Mod (Custom)", Paused ? NotificationType.Warning : NotificationType.Info);
             if (Paused)
                 Service.ChatGui.PrintError(msg, "VBM");
             else

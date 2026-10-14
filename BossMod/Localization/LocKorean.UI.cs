@@ -284,5 +284,16 @@ static partial class LocKorean
         ("toggle AI mode", "AI 모드 켜기/끄기"),
         ("alias for {0} {1}", "{0} {1}와(과) 같은 명령어"),
         ("enable multibox mode and follow party member with specified name or at specified slot", "멀티박스 모드를 켜고 지정한 이름 또는 슬롯의 파티원 따라가기"),
+
+        // BossMod/ActionTweaks/ActionTweaksConfig.cs
+        ("Delay actions during countdown", "카운트다운 중 액션 지연"),
+        ("If enabled, manually pressed actions will be delayed during countdown to ensure that they hit at 0 seconds.", "켜면 카운트다운 중 직접 누른 액션을 지연시켜 0초에 맞춰 적중하게 합니다."),
+
+        // BossMod/Framework/DtrConfig.cs
+        ("Server info bar", "서버 정보 표시줄"),
+        ("Dtr", "서버 정보 표시줄"),
+        ("Show autorotation status", "자동 로테이션 상태 표시"),
+        ("Show legacy AI status", "기존 AI 상태 표시"),
+        ("Show performance stats", "성능 통계 표시"),
     ];
 }

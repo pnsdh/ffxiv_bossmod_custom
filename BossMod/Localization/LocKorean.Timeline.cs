@@ -1692,5 +1692,11 @@ static partial class LocKorean
         ("Shared sentence", "확정 판결: 단체형"),
         ("Wormhole formation", "차원 단절 대형"),
         ("Mistral song", "삭풍의 노래"),
+
+        // BossMod.Modules/Dawntrail/Trial/T05Necron.cs
+        ("Darkness of Eternity", "영원한 어둠"),
+
+        // BossMod.Modules/Shadowbringers/Trial/T03Hades.cs
+        ("Life in Captivity", "감금된 삶"),
     ];
 }
