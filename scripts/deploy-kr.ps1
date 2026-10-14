@@ -1,6 +1,6 @@
 ﻿# Builds the plugin against the KR Dalamud and deploys it to the KR dev plugin folder.
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\deploy-kr.ps1 [-ModulesOnly]
-#   -ModulesOnly: only copy module dlls (BossMod.Ultimate etc.) into %APPDATA%\vbm\modules,
+#   -ModulesOnly: only copy module dlls (BossMod.Ultimate etc.) into %APPDATA%\vbm\modules-dev,
 #                 which the running plugin hot-reloads without restarting the game.
 param([switch]$ModulesOnly)
 
@@ -9,7 +9,9 @@ $root = Split-Path -Parent $PSScriptRoot
 $launcher = Join-Path $env:APPDATA 'XIVLauncherKR'
 $publish = Join-Path $root 'BossMod\bin\Release\publish'
 $target = Join-Path $launcher 'customPlugins\BossMod'
-$modules = Join-Path $env:APPDATA 'vbm\modules'
+# a dev plugin (IsDev) loads module dlls from modules-dev, not modules (PackLoader.ModuleDir); upstream fills it only from
+# debug builds, and the plugin itself copies its modules to 'modules' on start, so this script has to put them there
+$modules = Join-Path $env:APPDATA 'vbm\modules-dev'
 
 # use KR Dalamud (and its FFXIVClientStructs, which match the KR client) instead of the global one / local submodule
 $env:DALAMUD_HOME = Join-Path $launcher 'addon\Hooks\dev\'
@@ -38,12 +40,10 @@ $m | Add-Member -NotePropertyName Tags -NotePropertyValue @('boss', 'raid', 'rad
 [IO.File]::WriteAllText($manifestPath, ($m | ConvertTo-Json -Depth 10), (New-Object Text.UTF8Encoding $false))
 
 $moduleDlls ='BossMod.Autorotation.dll', 'BossMod.Modules.dll', 'BossMod.Ultimate.dll'
-if ($ModulesOnly) {
-    New-Item -ItemType Directory -Force $modules | Out-Null
-    foreach ($m in $moduleDlls) { Copy-Item (Join-Path $publish $m) $modules -Force }
-    Write-Host "Modules copied to $modules"
-    return
-}
+New-Item -ItemType Directory -Force $modules | Out-Null
+foreach ($m in $moduleDlls) { Copy-Item (Join-Path $publish $m) $modules -Force }
+Write-Host "Modules copied to $modules"
+if ($ModulesOnly) { return }
 
 # overwrite files in place instead of recreating the folder: Dalamud's dev plugin auto-reload watches this folder,
 # and deleting it breaks the watcher
