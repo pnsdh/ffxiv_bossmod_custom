@@ -62,6 +62,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     private readonly AIWindow _wndAI;
     private readonly MainDebugWindow? _wndDebug;
     private readonly ConfigWindow _wndConfig;
+    private readonly ConfigChangelogWindow _wndChangelog;
 
     private readonly ICallGateSubscriber<bool>? _vnavIsReady;
     private readonly ICallGateSubscriber<Vector3, float, bool, bool>? _vnavIsOnMesh;
@@ -91,6 +92,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         windowSystem = windowSystemFactory.Create("vbm");
 
         dalamud.Create<Service>();
+        Service.Mediator = mediator;
         Service.PluginInterface = dalamud;
         Service.LuminaGameData = dataManager.GameData;
         Service.WindowSystem = windowSystem;
@@ -101,6 +103,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Service.IsMock = uiBuilder.GetType().Assembly.FullName!.StartsWith("DalaMock.Core", StringComparison.InvariantCultureIgnoreCase);
 
         Service.Config = new(dalamud.ConfigFile);
+
+        Service.Config.PreviousAssemblyVersion = Service.Config.AssemblyVersion;
+        Service.Config.AssemblyVersion = Assembly.GetExecutingAssembly().GetName().Version!;
 
         Service.Config.Reload([], [Assembly.GetExecutingAssembly()]);
         BossModuleRegistry.Reload([], [Assembly.GetExecutingAssembly()]);
@@ -165,19 +170,20 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _hintsBuilder = new(_ws, _bossmod, _zonemod);
         _rotation = new(_rotationDB, _bossmod, _hints);
         _ipc = new(_rotation, _hintsBuilder.Obstacles);
-        _dtr = new(_rotation, mediator);
+        _dtr = new(_rotation);
         _slashCmd = new(commandManager, "/vbm");
         _mbox = new(_rotation, _ws);
 
         var replayDir = new DirectoryInfo(Path.Join(configDir, "replays"));
 
-        _wndConfig = new(new(Service.Config, _ws, replayDir, _rotationDB), mediator);
+        _wndConfig = new(new(Service.Config, _ws, replayDir, _rotationDB));
         _wndBossmod = new BossModuleMainWindow(_bossmod, _zonemod, _hints);
         _wndBossmodHints = new BossModuleHintsWindow(_bossmod, _zonemod, _hints);
-        _wndZone = new ZoneModuleWindow(_zonemod);
+        _wndZone = new ZoneModuleWindow(_zonemod, _rotation);
         _wndReplay = new ReplayManagementWindow(_ws, _bossmod, _rotationDB, replayDir);
-        _wndRotation = new UIRotationWindow(_rotation, _amex, MediatorService);
+        _wndRotation = new UIRotationWindow(_rotation, _amex);
         _wndAI = new AIWindow(_rotation);
+        _wndChangelog = new();
 
         if (Service.IsMock)
         {
@@ -186,7 +192,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         }
         else
         {
-            _wndDebug = new MainDebugWindow(_ws, _rotation, _zonemod, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud);
+            _wndDebug = new MainDebugWindow(_ws, _rotation, (ActionManagerEx)_amex, (MovementOverride)_movementOverride, _hintsBuilder, dalamud);
         }
 
         RegisterSlashCommands();
@@ -195,7 +201,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         Version cutoff = new(7, 5, 1, 13);
-        if (ConfigChangelogWindow.GetPreviousPluginVersion() < cutoff && ConfigChangelogWindow.GetCurrentPluginVersion() >= cutoff)
+        if (Service.Config.PreviousAssemblyVersion < cutoff && Service.Config.AssemblyVersion >= cutoff)
         {
             Service.Log($"Removing potentially broken bitmaps from {_hintsBuilder.Obstacles.UserRoot.FullName}");
             _hintsBuilder.Obstacles.ClearGenerated();
@@ -212,14 +218,21 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         condition.ConditionChange += OnConditionChanged;
 
-        _ = new ConfigChangelogWindow();
-
         if (Service.IsMock)
         {
             _ws.Execute(new ActorState.OpCreate(0x12345678, 0, 0, 0, "xan", 0, ActorType.Player, Class.WAR, 100, new(90, 0, 90, 0), 0.5f, new(500, 600, 100, 10000, 10000), true, true, 0, 0));
             _ws.Execute(new PartyState.OpModify(0, new(0x87654321, 0x12345678, false)));
             //_ws.Execute(new ActorState.OpCreate(0x12345679, (uint)StrikingDummy.OID.Boss, 10, 0, "Striking Dummy", 541, ActorType.Enemy, Class.None, 1, new(100, 0, 100, 0), 1, new(500, 600, 100, 10000, 10000), true, false, 0, 0));
         }
+
+        MediatorService.Subscribe<OpenWindowMessage>(this, o =>
+        {
+            windowSystem.Windows.FirstOrDefault(w => w.GetType() == o.WindowType)?.IsOpen = true;
+        });
+        MediatorService.Subscribe<ToggleWindowMessage>(this, t =>
+        {
+            windowSystem.Windows.FirstOrDefault(w => w.GetType() == t.WindowType)?.IsOpen ^= true;
+        });
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
@@ -265,6 +278,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _amex.QueueManualActions();
         _rotation.Update(_amex.AnimationLockDelayEstimate, _movementOverride.IsMoving(), Service.Condition[ConditionFlag.DutyRecorderPlayback]);
         _amex.FinishActionGather();
+        _wsSync.UpdateReplayState(_rotation, _movementOverride, _hints);
 
         Service.IconFont = uiBuilder.FontIcon;
         Service.MonoFont = uiBuilder.FontMono;
@@ -386,7 +400,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     void OpenConfigUI(string tab = "")
     {
-        MediatorService.Publish(new OpenConfigMessage(tab));
+        MediatorService.Publish(new OpenSettingsWindowMessage(tab));
     }
 
     void OpenUi() => OpenConfigUI();
@@ -706,18 +720,30 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
     private static void CopyLibraries(FileInfo assemblyLocation)
     {
-        var modulesDir = Path.Join(Plugin.GetStorageDir(), "modules");
-        var assemblyDir = assemblyLocation.DirectoryName!;
+        var modulesDir = PackLoader.ModuleDir;
+        var assemblyDir = assemblyLocation.DirectoryName;
 
         Directory.CreateDirectory(modulesDir);
 
         void copy(string filename)
         {
             var src = Path.Join(assemblyDir, filename);
+            var dest = Path.Join(modulesDir, filename);
             if (File.Exists(src))
+            {
+                if (File.Exists(dest) && File.GetCreationTimeUtc(dest) > File.GetCreationTimeUtc(src))
+                {
+                    Service.PluginLog.Debug($"{dest} is newer than our version, skipping copy");
+                    return;
+                }
+
+                Service.PluginLog.Debug($"copied {src} to {dest}");
                 File.Copy(src, Path.Join(modulesDir, filename), true);
-            else
-                Service.PluginLog.Verbose($"{filename} missing from assembly directory, is this a dev build?");
+
+                return;
+            }
+
+            Service.PluginLog.Warning($"{src} does not exist, cannot copy");
         }
 
         copy("BossMod.Autorotation.dll");
@@ -731,9 +757,9 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         while (!token.IsCancellationRequested)
         {
-            Service.Config.SaveToFile(dalamud.ConfigFile);
-
             await Task.Delay(30_000, token).ConfigureAwait(true);
+
+            Service.Config.SaveToFile(dalamud.ConfigFile);
         }
     }
 
@@ -751,6 +777,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
 
         GaugeVisualizer.Dispose();
         _wndDebug?.Dispose();
+        _wndChangelog.Dispose();
         _wndAI.Dispose();
         _wndRotation.Dispose();
         _wndReplay.Dispose();

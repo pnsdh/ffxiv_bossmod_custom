@@ -31,6 +31,8 @@ class ReplayDetailsWindow : UIWindow
     private readonly EventList _events;
     private readonly ReplayAnalysis.AnalysisManager _analysis;
     private BossModule.DebugOptions _moduleDebug = new();
+    private UIWindow? _modulePopout;
+    private EventSubscriptions? _replayDebugEvents;
 
     private readonly UITree _pfTree = new();
     private AIHintsVisualizer? _pfVisu;
@@ -55,6 +57,7 @@ class ReplayDetailsWindow : UIWindow
         _first = data.Ops[0].Timestamp;
         _last = data.Ops[^1].Timestamp;
         _curTime = initialTime ?? _first;
+        EnableDebugEvents();
         _player.AdvanceTo(_curTime, _mgr.Update);
         _config = new(Service.Config, _player.WorldState, null, null);
         _events = new(data, MoveTo, rotationDB.Plans, this);
@@ -63,6 +66,8 @@ class ReplayDetailsWindow : UIWindow
 
     protected override void Dispose(bool disposing)
     {
+        _replayDebugEvents?.Dispose();
+        _modulePopout?.Dispose();
         _analysis.Dispose();
         _config.Dispose();
         _rmm.Dispose();
@@ -84,13 +89,24 @@ class ReplayDetailsWindow : UIWindow
         DrawControlRow();
         DrawTimelineRow();
         ImGui.TextUnformatted($"Num loaded modules: {_mgr.LoadedModules.Count}, num active modules: {_mgr.LoadedModules.Count(m => m.StateMachine.ActiveState != null)}, active module: {_mgr.ActiveModule?.GetType()}, zone module: {_zmm.ActiveModule?.GetType()}");
-        if (_zmm.ActiveModule != null)
+        if (_zmm.ActiveModule is { } zm)
         {
-            // TODO: reconsider where this is all drawn...
-            if (_zmm.ActiveModule.WantDrawHints())
-                _zmm.ActiveModule.DrawGlobalHints();
-            if (_zmm.ActiveModule.WantDrawExtra())
-                _zmm.ActiveModule.DrawExtra();
+            if (zm.WantDrawHints())
+                zm.DrawGlobalHints();
+
+            if (zm.GetWindowDescription() is { } desc)
+            {
+                if (_modulePopout == null)
+                {
+                    _modulePopout = new UISimpleWindow($"{desc.Name}###replay-zonemod", () => zm.DrawWindow(_rmm), true, new(600, 400), desc.Flags);
+                    _modulePopout.OpenAndBringToFront();
+                }
+            }
+            else
+            {
+                _modulePopout?.IsOpen = false;
+                _modulePopout = null;
+            }
         }
         if (!_azimuthOverride)
             _azimuth = _mgr.WorldState.Client.CameraAzimuth.Deg;
@@ -570,6 +586,7 @@ class ReplayDetailsWindow : UIWindow
             _zmm = new(_player.WorldState);
             _hintsBuilder = new(_player.WorldState, _mgr, _zmm);
             _rmm = new(_rotationDB, _mgr, _hints);
+            EnableDebugEvents();
         }
         _player.AdvanceTo(t, _mgr.Update);
         _mgr.ActiveModule?.DebugOpts = _moduleDebug;
@@ -602,6 +619,20 @@ class ReplayDetailsWindow : UIWindow
         _pfVisu = null;
     }
 
+    private void EnableDebugEvents()
+    {
+        _replayDebugEvents?.Dispose();
+
+        _replayDebugEvents = new(
+            _player.WorldState.ReplayState.ActivePresetsChanged.Subscribe(p =>
+            {
+                _rmm.Clear();
+                foreach (var active in p.Presets)
+                    _rmm.Activate(active);
+            })
+        );
+    }
+
     private void SplitLog()
     {
         if (_player.Replay.Ops.Count == 0)
@@ -631,5 +662,12 @@ class ReplayDetailsWindow : UIWindow
         player.AdvanceTo(enc.Time.Start, () => { });
         using var relogger = new ReplayRecorder(player.WorldState, ReplayLogFormat.BinaryCompressed, true, new FileInfo(_player.Replay.Path).Directory!, $"Encounter_{Utils.StringToIdentifier(primaryActorName ?? "unknown")}", false);
         player.AdvanceTo(enc.Time.End, () => { });
+    }
+
+    public override void OnClose()
+    {
+        base.OnClose();
+        _modulePopout?.IsOpen = false;
+        _modulePopout = null;
     }
 }

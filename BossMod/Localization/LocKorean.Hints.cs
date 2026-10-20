@@ -1179,5 +1179,40 @@ static partial class LocKorean
         // BossMod.Modules/Stormblood/Trial/T02Lakshmi.cs
         ("Use Vril!", "락슈미 에테르를 사용하세요!"),
         ("Grab an orb to refill Vril", "구슬을 먹어 락슈미 에테르 충전"),
+
+        // BossMod.Modules/Stormblood/Raid/O1NAlteRoite .. O12NOmegaMF
+        ("Drop ice at the edge!", "얼음을 가장자리에 설치!"),
+        ("Slippery floor", "미끄러운 바닥"),
+        ("Drop fire at the edge!", "불을 가장자리에 설치!"),
+        ("Jammer the focus!", "포커스에 오메가 교란기 사용!"),
+        ("Jammer the fists!", "주먹에 오메가 교란기 사용!"),
+        ("Bait meteor to the edge!", "메테오를 가장자리로 유도!"),
+        ("Attack Omega-M!", "오메가 M 공격!"),
+        ("Attack Omega-F!", "오메가 F 공격!"),
+        ("Move bosses apart!", "보스를 서로 떨어뜨리세요!"),
+        ("Knockback - get close!", "넉백 - 가까이 붙으세요!"),
+        ("Tankbuster!", "탱버!"),
+        ("Buster on you!", "나에게 탱버!"),
+        ("Away from tank!", "탱커에게서 떨어지세요!"),
+        ("Levitate!", "레비테트!"),
+        ("Don't levitate", "레비테트 금지"),
+        ("Watch the tentacles", "촉수 주의"),
+        ("Bait to the edge!", "가장자리로 유도!"),
+        ("Stand in the vine gap", "덩굴 틈에 서세요"),
+        ("Go to the edge", "가장자리로 가세요"),
+        ("Behind the head", "머리 뒤로"),
+        ("Bait the ghost into the beam!", "유령을 광선 쪽으로 유도!"),
+        ("Bait the beam onto a ghost!", "광선을 유령에게 유도!"),
+        ("Bait to the back of the train!", "열차 뒤쪽으로 유도!"),
+        ("Get caught by a ghost", "유령에게 잡히세요"),
+        ("Go to the jump pad!", "점프대로 가세요!"),
+        ("Dismount", "내리기"),
+        ("Prey. Incoming damage and dot.", "표식. 피해와 도트가 들어옵니다."),
+        ("Seal the pad", "발판 봉인"),
+        ("Defuse the brighter wire", "더 밝은 선을 해제"),
+
+        // BossMod.Ultimate/Stormblood/Ultimate/UWU/P1MistralSong.cs (new hints)
+        ("GTFO from add!", "쫄에게서 떨어지세요!"),
+        ("Intercept add!", "쫄을 가로막으세요!"),
     ];
 }

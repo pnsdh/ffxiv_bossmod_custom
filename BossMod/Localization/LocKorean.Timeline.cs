@@ -1698,5 +1698,8 @@ static partial class LocKorean
 
         // BossMod.Modules/Shadowbringers/Trial/T03Hades.cs
         ("Life in Captivity", "감금된 삶"),
+
+        // BossMod.Modules/Stormblood/Raid/O12NOmegaMF/O12NOmegaMF.cs
+        ("Omega", "오메가"),
     ];
 }

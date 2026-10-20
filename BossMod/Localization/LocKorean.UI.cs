@@ -295,5 +295,100 @@ static partial class LocKorean
         ("Show autorotation status", "자동 로테이션 상태 표시"),
         ("Show legacy AI status", "기존 AI 상태 표시"),
         ("Show performance stats", "성능 통계 표시"),
+
+        // BossMod/Config/ConfigUI.cs (settings groups, pages, categories)
+        ("General", "일반"),
+        ("Other", "기타"),
+        ("Radar & Modules", "레이더 및 모듈"),
+        ("AI & Automation", "AI 및 자동화"),
+        ("Job-specific", "직업별"),
+        ("Animation lock", "애니메이션 락"),
+        ("Arena", "전장"),
+        ("In-world hints", "필드 표시 힌트"),
+        ("Movement & casting", "이동 및 시전"),
+        ("Planner", "플래너"),
+        ("Radar contents", "레이더 내용"),
+        ("Radar window", "레이더 창"),
+        ("Targeting & queueing", "대상 지정 및 대기열"),
+        ("Text hints", "텍스트 힌트"),
+        ("Trials", "토벌전"),
+        ("Dungeons", "던전"),
+        ("{0} - Phase {1}", "{0} - {1}페이즈"),
+        ("Reset to default", "기본값으로 되돌리기"),
+        ("Unassigned", "미지정"),
+
+        // BossMod/ActionTweaks/ActionTweaksConfig.cs
+        ("Nothing", "없음"),
+        ("CTRL", "CTRL"),
+        ("ALT", "ALT"),
+        ("SHIFT", "SHIFT"),
+        ("Hold to disable", "누르고 있으면 해제"),
+        ("Automatically cancel cast if target dies", "대상이 죽으면 자동으로 시전 취소"),
+        ("Prevent movement and actions during pyretic/stillness", "열병/정지 상태 중 이동과 액션 막기"),
+        ("Anticipation window (seconds)", "미리 대비하는 시간 (초)"),
+        ("Prevent undesired movement during Temporary Misdirection", "심신상실 중 원치 않는 이동 막기"),
+        ("Maximum facing deviation (degrees)", "허용할 최대 방향 오차 (도)"),
+        ("Automatic target selection for ground-targeted abilities:", "범위 지정 능력의 자동 대상 선택:"),
+
+        // BossMod/Framework/DtrConfig.cs
+        ("Autorotation status indicator", "자동 로테이션 상태 표시기"),
+
+        // BossMod/Replay/ReplayManagementConfig.cs
+        ("If this option is disabled, replays will contain your player's name, as well as the names of any other players you encounter. They will also contain the content IDs of you and your party members.", "이 옵션을 끄면 리플레이에 내 캐릭터 이름과 만난 다른 플레이어들의 이름이 담깁니다. 나와 파티원들의 콘텐츠 ID도 함께 담깁니다."),
+
+        // BossMod/AI/AIWindow.cs
+        ("Follow", "따라가기"),
+        ("on", "켜짐"),
+        ("off", "꺼짐"),
+        ("Not following", "따라가지 않음"),
+        ("Following {0} ({1}y)", "{0} 따라가는 중 ({1}m)"),
+        ("In danger", "위험 지역"),
+        ("Avoiding {0} AOE{1}", "장판 {0}개 피하는 중"),
+        ("Forced movement", "강제 이동"),
+        ("{0} goal zone{1}", "목표 지점 {0}곳"),
+        ("Idle", "대기 중"),
+
+        // BossMod/BossModule/QuestBattle.cs
+        ("Stuck?", "막혔나요?"),
+        ("Leave duty", "임무 나가기"),
+        ("Skip step", "단계 건너뛰기"),
+        ("Restart", "다시 시작"),
+        ("Step {0}: {1}", "{0}단계: {1}"),
+
+        // BossMod/BossModule/StateMachine.cs
+        ("Cur: Inactive", "현재: 비활성"),
+        ("Then:", "다음:"),
+
+        // BossMod/Config/AboutTab.cs
+        ("Show changelog", "변경 사항 보기"),
+        ("Version {0}", "버전 {0}"),
+        ("Enabled in Settings > General > Replays > Show replay management UI (or enable auto recording).", "설정 > 일반 > 리플레이 > 리플레이 관리 UI 표시에서 켤 수 있습니다 (또는 자동 녹화를 켜세요)."),
+
+        // BossMod/Config/ConfigChangelog.cs
+        ("has been changed to be enabled by default. You can disable it in Settings -> Action Tweaks.", "이(가) 이제 기본으로 켜집니다. 설정 -> 액션 조정에서 끌 수 있습니다."),
+        ("The server info bar settings have been moved. They now have their own separate section in the Settings tab.", "서버 정보 표시줄 설정을 옮겼습니다. 이제 설정 탭에 별도 항목이 있습니다."),
+        ("Show changes since:", "이 버전 이후 변경 사항:"),
+        ("Please enter a version number (2-4 numbers separated by dots).", "버전 번호를 입력하세요 (점으로 구분한 숫자 2~4개)."),
+        ("Show everything", "전체 보기"),
+        ("No changes since {0}.", "{0} 이후 변경 사항이 없습니다."),
+
+        // BossMod/Config/ModuleViewer.cs
+        ("CD plans L{0}", "쿨다운 계획 Lv{0}"),
+        ("Export...", "내보내기..."),
+
+        // BossMod/Replay/ReplayManagementWindow.cs
+        ("Log marker text, e.g. 'wipe here'", "로그 마커 내용, 예: '여기서 전멸'"),
+        ("Cull old replays", "오래된 리플레이 정리"),
+        ("Not recording (auto-record is on)", "녹화 안 함 (자동 녹화 켜짐)"),
+        ("Not recording", "녹화 안 함"),
+        ("manual", "수동"),
+        ("duty", "임무"),
+        ("boss module", "보스 모듈"),
+        ("auto", "자동"),
+        ("Recording {0}:{1} ({2})", "녹화 중 {0}:{1} ({2})"),
+        ("Duty", "임무"),
+
+        // BossMod/Util/Overlays.cs
+        ("Open settings", "설정 열기"),
     ];
 }

@@ -221,5 +221,13 @@ static partial class LocKorean
         ("Always complete combo (hold if target moves out of range)", "항상 콤보 완료 (대상이 사거리를 벗어나면 대기)"),
         ("Always complete combo; use Reprise as fallback if enough mana (NOT IMPLEMENTED, this is a placeholder option)", "항상 콤보 완료; 마나가 충분하면 대안으로 르프리즈 사용 (미구현, 자리만 잡아둔 옵션)"),
         ("Break combo if target is out of range", "대상이 사거리를 벗어나면 콤보 끊기"),
+
+        // BossMod.Modules/Global/DeepDungeon/Config.cs
+        ("This is experimental. Use at your own risk. You will sometimes need to help the AI to navigate.", "실험적인 기능입니다. 사용에 따른 책임은 본인에게 있습니다. 가끔 AI의 길 찾기를 직접 도와줘야 합니다."),
+        ("This feature is currently very inconsistent and will likely get you killed. Enabling it is not recommended.", "이 기능은 현재 동작이 매우 불안정해서 죽을 가능성이 높습니다. 켜는 것을 권장하지 않습니다."),
+
+        // BossMod.Modules/Stormblood/Foray/EurekaFarm.cs
+        ("Enable the prep module (and overlay)", "준비 모듈 (및 오버레이) 사용"),
+        ("Only attack mobs that are already in combat", "이미 전투 중인 몹만 공격"),
     ];
 }

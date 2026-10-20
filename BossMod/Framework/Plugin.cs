@@ -11,27 +11,11 @@ using System.Threading.Tasks;
 
 namespace BossMod;
 
-public class Plugin : HostedPlugin, IAsyncDalamudPlugin
+public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud), IAsyncDalamudPlugin
 {
     public string Name => "Boss Mod";
 
-    private readonly bool _dormant; // a conflicting fork is running, see CustomEdition
-
-    public Plugin(IDalamudPluginInterface dalamud, ISigScanner sigScanner, IDataManager dataManager) : base(dalamud)
-    {
-        _dormant = CustomEdition.CheckDormant(dalamud);
-        if (_dormant)
-            return;
-
-#if LOCAL_CS
-        if (sigScanner == null) // nonexistent in mock environment
-            return;
-
-        InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, dataManager.GameData.Repositories["ffxiv"].Version, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
-        FFXIVClientStructs.Interop.Generated.Addresses.Register();
-        InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
-#endif
-    }
+    private readonly bool _dormant = CustomEdition.CheckDormant(dalamud); // a conflicting fork is running, see CustomEdition
 
     Task IAsyncDalamudPlugin.LoadAsync(CancellationToken cancellationToken) => _dormant ? Task.CompletedTask : LoadAsync(cancellationToken);
 
@@ -39,6 +23,22 @@ public class Plugin : HostedPlugin, IAsyncDalamudPlugin
     public override void ConfigureContainer(ContainerBuilder containerBuilder)
     {
         containerBuilder.RegisterSingletonSelfAndInterfaces<TickService>();
+
+#if LOCAL_CS
+        containerBuilder.RegisterBuildCallback(ctx =>
+        {
+            var sigScanner = ctx.Resolve<ISigScanner>();
+            var dataManager = ctx.Resolve<IDataManager>();
+            var dalamud = ctx.Resolve<IDalamudPluginInterface>();
+            var logger = ctx.Resolve<IPluginLog>();
+
+            logger.Info("LOCAL_CS: initializing our custom address resolver");
+
+            InteropGenerator.Runtime.Resolver.GetInstance.Setup(sigScanner.SearchBase, dataManager.GameData.Repositories["ffxiv"].Version, new(dalamud.ConfigDirectory.FullName + "/cs.json"));
+            FFXIVClientStructs.Interop.Generated.Addresses.Register();
+            InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
+        });
+#endif
     }
     public override void ConfigureServices(IServiceCollection serviceCollection) { }
 

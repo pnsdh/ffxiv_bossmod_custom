@@ -4,7 +4,7 @@ using System.IO;
 
 namespace BossMod;
 
-[ConfigDisplay(Name = "Language", Order = -10)]
+[ConfigDisplay(Name = "Language", Order = -10, Group = "General")]
 public sealed class LocalizationConfig : ConfigNode
 {
     public enum UILanguage
