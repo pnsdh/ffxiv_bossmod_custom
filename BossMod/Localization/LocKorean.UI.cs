@@ -66,6 +66,22 @@ static partial class LocKorean
         ("All good!", "문제 없음!"),
         ("Auto-assign slots", "자동 배정"),
 
+        // BossMod/Config/PartyRolesConfig.Custom.cs
+        ("Warn in chat when roles aren't assigned", "역할이 배정되지 않았으면 채팅으로 알리기"),
+        ("Only you see the message. It is shown once per duty and party, on entering a duty whose boss modules use role assignments.", "나에게만 보이는 메시지입니다. 역할 배정을 쓰는 보스가 있는 임무에 들어가면, 임무와 파티 구성마다 한 번 표시합니다."),
+        ("Chat channel for the warning", "알림을 출력할 채팅 채널"),
+        ("Warn in ultimates", "절 난이도에서 알리기"),
+        ("Warn in savage raids", "영웅 레이드에서 알리기"),
+        ("Warn in extreme trials", "극 토벌전에서 알리기"),
+        ("Warn in unreal trials", "환 토벌전에서 알리기"),
+        ("Warn in other content", "그 밖의 콘텐츠에서 알리기"),
+        ("Dalamud default (same as other plugin messages)", "Dalamud 기본 채널 (다른 플러그인 메시지와 같음)"),
+        ("Echo", "에코"),
+        ("System messages", "시스템 메시지"),
+        ("Error messages", "오류 메시지"),
+        ("Notices", "공지"),
+        ("Urgent", "긴급"),
+
         // BossMod/BossModule
         ("This module does not expose any configuration", "이 모듈에는 설정 항목이 없습니다"),
         ("What would you like to do?", "어떻게 할까요?"),

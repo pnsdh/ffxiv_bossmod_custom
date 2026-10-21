@@ -273,6 +273,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         Camera.Instance()?.Update();
         _wsSync.Update(_prevUpdateTime);
         _bossmod.Update();
+        PartyRolesWarning.Update(_ws);
         _zonemod.ActiveModule?.Update();
         _hintsBuilder.Update(_hints, PartyState.PlayerSlot, moveImminent);
         _amex.QueueManualActions();
@@ -789,6 +790,7 @@ internal class TickService : DisposableMediatorSubscriberBase, IHostedService
         _mbox.Dispose();
         _slashCmd.Dispose();
         _dtr.Dispose();
+        PartyRolesWarning.Dispose();
         _ipc.Dispose();
         _rotation.Dispose();
         _wsSync.Dispose();
