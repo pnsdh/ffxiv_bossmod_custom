@@ -1,11 +1,13 @@
 name: Sync upstream
 
-# Periodically merges upstream (awgil/ffxiv_bossmod) master into this fork's master.
+# Periodically merges upstream's (awgil/ffxiv_bossmod) latest release into this fork's master.
+# Follows release tags, not upstream master: master can carry unfinished work that upstream itself
+# hasn't built yet (upstream only builds when it bumps the version).
 # - Clean merge -> push, then call release-custom.yml to publish a new release right away
 #   (pushes made with GITHUB_TOKEN don't trigger other workflows, so it's called explicitly).
 # - Merge conflict, or upstream changes touching .github/workflows (GITHUB_TOKEN can't push those)
 #   -> the run fails, which sends a notification email. Merge manually:
-#      git fetch upstream && git merge upstream/master && git push
+#      git fetch upstream --tags && git merge <tag> && git push
 on:
   schedule:
     - cron: '23 */3 * * *'
@@ -29,31 +31,38 @@ jobs:
           ref: master
           fetch-depth: 0
 
-      - name: Merge upstream/master
+      - name: Merge upstream release
         id: merge
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote add upstream https://github.com/awgil/ffxiv_bossmod.git
-          git fetch --no-tags upstream master
 
-          if git merge-base --is-ancestor upstream/master HEAD; then
-            echo "Already up to date with upstream."
+          # latest non-prerelease release (testing builds are prereleases tagged t*)
+          tag=$(gh api repos/awgil/ffxiv_bossmod/releases/latest --jq .tag_name)
+          echo "Latest upstream release: $tag"
+          git fetch --no-tags upstream "refs/tags/$tag:refs/tags/upstream-$tag"
+          target="upstream-$tag"
+
+          if git merge-base --is-ancestor "$target" HEAD; then
+            echo "Already up to date with upstream $tag."
             echo "merged=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           before=$(git rev-parse HEAD)
-          if ! git merge --no-edit upstream/master; then
+          if ! git merge --no-edit -m "Merge upstream release $tag" "$target"; then
             {
-              echo "## Merge conflict with upstream/master"
-              echo "Resolve locally: \`git fetch upstream && git merge upstream/master\`, then push."
+              echo "## Merge conflict with upstream release $tag"
+              echo "Resolve locally: \`git fetch upstream --tags && git merge $tag\`, then push."
               echo '```'
               git diff --name-only --diff-filter=U
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
             git merge --abort
-            echo "::error::Merge conflict with upstream/master - see job summary."
+            echo "::error::Merge conflict with upstream release $tag - see job summary."
             exit 1
           fi
 
@@ -61,7 +70,7 @@ jobs:
           if [ -n "$workflows" ]; then
             {
               echo "## Upstream changed workflow files"
-              echo "GITHUB_TOKEN can't push these. Merge locally: \`git fetch upstream && git merge upstream/master\`, then push."
+              echo "GITHUB_TOKEN can't push these. Merge locally: \`git fetch upstream --tags && git merge $tag\`, then push."
               echo '```'
               echo "$workflows"
               echo '```'
