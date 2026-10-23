@@ -322,7 +322,8 @@ class P2PartySynergyEfficientBladework : Components.GenericAOEs
             return new();
 
         // assumption: first source (F) is our relative north, G1 always goes to relative west, G2 goes to relative S/E depending on glitch
-        var relNorth = 1.4f * (_sources[0].Position - Module.Center);
+        // remote: far out by the edge; mid: right outside the bladework circles (~13.1), which keeps partners 90 degrees apart at ~21y (mid needs 20-26)
+        var relNorth = (_synergy.ActiveGlitch == P2PartySynergy.Glitch.Mid ? 15 : 18.2f) * (_sources[0].Position - Module.Center).Normalized();
         return _firstGroup[slot] ? relNorth.OrthoL() : _synergy.ActiveGlitch == P2PartySynergy.Glitch.Mid ? -relNorth : relNorth.OrthoR();
     }
 }
