@@ -49,8 +49,9 @@ public partial class TOPConfig
         P3IntermissionAssignments.Assignments = [1, 2, 0, 7, 3, 4, 5, 6];
         P3IntermissionStacksNorth = true;
 
-        // P3 Monitors: priority from north H1 H2 T1 T2 D1 D2 D3 D4; monitors stand opposite the boss monitor
-        P3MonitorsAssignments.Assignments = [2, 3, 0, 1, 4, 5, 6, 7];
+        // P3 Monitors: priority from north H1 T1 T2 D1 D2 D3 D4 H2 (the usual line parties use; the strat sheet says H1 H2 T1 T2 D1-D4, kept as a preset);
+        // monitors stand opposite the boss monitor
+        P3MonitorsAssignments.Assignments = [1, 2, 0, 7, 3, 4, 5, 6];
         P3MonitorsLayoutChoice = P3MonitorsLayout.Strat09STOP;
 
         // P4 Wave Cannon: W column T1 D3 H1 D1, E column T2 D4 H2 D2 (north to south); same as the LPDU preset

@@ -73,8 +73,9 @@ public partial class TOPConfig() : ConfigNode()
     [GroupDetails(["1", "2", "3", "4", "5", "6", "7", "8"])]
     [GroupPreset("LPDU (HTMR)", [2, 3, 0, 1, 4, 5, 6, 7])]
     [GroupPreset("NA (HRMT conga)", [3, 4, 0, 7, 2, 5, 1, 6])]
-    [GroupPreset("09STOP (HHTTDDDD)", [2, 3, 0, 1, 4, 5, 6, 7])]
-    public GroupAssignmentUnique P3MonitorsAssignments = new() { Assignments = [2, 3, 0, 1, 4, 5, 6, 7] };
+    [GroupPreset("09STOP (HTTDDDDH)", [1, 2, 0, 7, 3, 4, 5, 6])] // what KR parties commonly use: the usual priority line
+    [GroupPreset("09STOP strat sheet (HHTTDDDD)", [2, 3, 0, 1, 4, 5, 6, 7])]
+    public GroupAssignmentUnique P3MonitorsAssignments = new() { Assignments = [1, 2, 0, 7, 3, 4, 5, 6] };
 
     public enum P3MonitorsLayout
     {

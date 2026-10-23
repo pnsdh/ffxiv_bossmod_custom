@@ -23,7 +23,7 @@ static partial class LocKorean
         ("Stacks N, spreads S", "쉐어 북, 산개 남 (LPDU, 09STOP)"),
 
         ("09STOP (HTTDDDDH)", "09STOP (HTTDDDDH)"),
-        ("09STOP (HHTTDDDD)", "09STOP (HHTTDDDD)"),
+        ("09STOP strat sheet (HHTTDDDD)", "09STOP 공략 문서 (HHTTDDDD)"),
         ("09STOP (TRHM)", "09STOP (TRHM)"),
         ("P5 Delta: layout", "P5 델타: 배치"),
         ("P5 Sigma: layout", "P5 시그마: 배치"),
