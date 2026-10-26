@@ -114,7 +114,7 @@ public static class PartyRolesWarning
             return;
         _lastWarned = key;
 
-        _openSettings ??= Service.ChatGui.AddChatLinkHandler(0, (_, _) => Service.Mediator.Publish(new ShowConfigNodeMessage(typeof(PartyRolesConfig))));
+        _openSettings ??= Service.ChatGui.AddChatLinkHandler(0, (_, _) => Service.Mediator.Publish(new ShowConfigNode(typeof(PartyRolesConfig))));
         var msg = new SeStringBuilder()
             .AddText("파티 역할이 배정되지 않았습니다. ")
             .Add(_openSettings)

@@ -129,7 +129,7 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         // forcing the player to move directly toward the arena center works fine in this basic case, but would be terrible for other content
         //   - hunt marks can be hundreds of units away
         //   - araid/foray bosses are often located on an isolated platform with a clientpath leading to it, so VBM would just run directly forward into the abyss
-        if (Bossmods.ActiveModule is { Info.Category: BossModuleInfo.Category.Dungeon or BossModuleInfo.Category.Variant, StateMachine.ActivePhase: not null } module && !module.Arena.InBounds(Player.Position))
+        if (Bossmods.ActiveModule is { Info.Category: BossModuleInfo.Category.Dungeon or BossModuleInfo.Category.Variant } module && !module.Arena.InBounds(Player.Position))
         {
             Hints.ForcedMovement = Player.DirectionTo(module.Arena.Center).ToVec3();
             return;
@@ -185,7 +185,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
         // simulate forward forced movement; this is kind of a hack, but it definitely doesn't belong in modules because it's part of the movement constraint
         if (isSpinning)
         {
-            // rect is offset by -1 unit player-relative. we know very well that player-centered shapes make the pathfinder freak the fuck out
             Hints.AddForbiddenZone(ShapeDistance.Rect(Player.Position, Player.Rotation, SpinningLookahead, SpinningLookahead + 2, SpinningLookahead + 2), World.FutureTime(2));
             Hints.AddForbiddenZone(ShapeDistance.Cone(Player.Position, 100, Player.Rotation + 180.Degrees(), 45.Degrees()), DateTime.MaxValue);
         }
@@ -305,7 +304,6 @@ public sealed class NormalMovement(RotationModuleManager manager, Actor player) 
                                 navi.Destination = uptimePosition;
                             break;
 
-                        // TODO: don't use a _navCtx that's being modified in a background thread; we should hold onto two of them and swap them when the task completes
                         case RangeStrategy.GreedAutomatic:
                             var uptimeCell = CtxInactive.Map.GridToIndex(CtxInactive.Map.WorldToGrid(uptimePosition));
                             var curCell = CtxInactive.ThetaStar.StartNodeIndex;

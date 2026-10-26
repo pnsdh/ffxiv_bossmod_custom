@@ -1,5 +1,7 @@
 ﻿using Dalamud.Hooking;
 using InteropGenerator.Runtime;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace BossMod;
 
@@ -26,11 +28,20 @@ public sealed class HookAddress<T> : IDisposable where T : Delegate
     public HookAddress(string signature, T detour, bool autoEnable = true) : this(Service.SigScanner.ScanText(signature), detour, autoEnable) { }
     public HookAddress(nint address, T detour, bool autoEnable = true)
     {
-        Service.Log($"Hooking {typeof(T)} @ 0x{address:X}");
+        var @base = Process.GetCurrentProcess().MainModule!.BaseAddress;
+        Service.Log($"Hooking {typeof(T)} @ +0x{address - @base:X}");
         _hook = Service.Hook.HookFromAddress(address, detour);
         if (autoEnable)
             _hook.Enable();
     }
 
     public void Dispose() => _hook.Dispose();
+
+    public static T FnPtr(string signature)
+    {
+        var @base = Process.GetCurrentProcess().MainModule!.BaseAddress;
+        var addr = Service.SigScanner.ScanText(signature);
+        Service.Log($"Located {typeof(T)} @ +0x{addr - @base:X}");
+        return Marshal.GetDelegateForFunctionPointer<T>(addr);
+    }
 }

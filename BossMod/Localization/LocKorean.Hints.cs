@@ -1104,6 +1104,9 @@ static partial class LocKorean
         ("Intercept charge!", "돌진 가로막기!"),
         // BossMod.Ultimate/Stormblood/Ultimate/UWU/P3Gaols.cs
         ("Gaols: {0}", "감옥: {0}"),
+        // BossMod/Components/UnavoidableDamage.cs (the hint itself is translated at the source)
+        ("{0} x{1}", "{0} x{1}"),
+
         // BossMod/Components/CastCounter.cs
         ("Casts of {0}:\n{1}\nTotal casts: {2}", "{0} 시전:\n{1}\n총 시전 횟수: {2}"),
         // BossMod/Components/DirectionalParry.cs

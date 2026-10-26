@@ -36,8 +36,10 @@ class UCOBStates : StateMachineBuilder
 
     private void Phase1Twintania1(uint id)
     {
-        P1Plummet(id, 6.2f);
-        P1TwisterFireball(id + 0x10000, 4.1f);
+        P1Plummet(id, 6.2f)
+            .ActivateOnEnter<P1TwisterFireball>();
+        P1TwisterFireball(id + 0x10000, 4.1f)
+            .DeactivateOnExit<P1TwisterFireball>();
         P1DeathSentence(id + 0x20000, 4.1f);
         // repeat
         P1Plummet(id + 0x30000, 3.2f);
@@ -72,7 +74,7 @@ class UCOBStates : StateMachineBuilder
         P1Generate(id + 0x10000, 1.2f);
         P1LiquidHellFireball(id + 0x20000, 3.3f);
         P1DeathSentence(id + 0x30000, 5.1f);
-        P1Plummet(id + 0x40000, 3.2f, true);
+        P1Plummet(id + 0x40000, 3.2f);
         P1GenerateTwister(id + 0x50000, 4.1f);
         P1Plummet(id + 0x60000, 4.9f);
         // repeat
@@ -148,15 +150,11 @@ class UCOBStates : StateMachineBuilder
         P5Enrage(id + 0xE0000, 2.1f);
     }
 
-    private void P1Plummet(uint id, float delay, bool soak = false)
+    private State P1Plummet(uint id, float delay)
     {
-        ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
+        return ComponentCondition<P1Plummet>(id, delay, comp => comp.NumCasts > 0, "Cleave")
             .ActivateOnEnter<P1Plummet>()
-            .ExecOnEnter<P1Plummet>(p =>
-            {
-                p.NextExpected = Module.WorldState.FutureTime(delay);
-                p.Soak = soak;
-            })
+            .ExecOnEnter<P1Plummet>(p => p.NextExpected = Module.WorldState.FutureTime(delay))
             .DeactivateOnExit<P1Plummet>();
     }
 
@@ -168,9 +166,9 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Tankbuster);
     }
 
-    private void P1FireballResolve(uint id, float delay)
+    private State P1FireballResolve(uint id, float delay)
     {
-        ComponentCondition<P1Fireball>(id, delay, comp => !comp.ActiveStacks.Any(), "Stack", 1, delay - 0.2f) // note that if target dies, fireball won't happen
+        return ComponentCondition<P1Fireball>(id, delay, comp => !comp.ActiveStacks.Any(), "Stack", 1, delay - 0.2f) // note that if target dies, fireball won't happen
             .DeactivateOnExit<P1Fireball>();
     }
 
@@ -184,23 +182,21 @@ class UCOBStates : StateMachineBuilder
             .ExecOnExit<P1Fireball>(c => c.EnableHints = true, withFireball);
     }
 
-    private void P1TwisterFireball(uint id, float delay)
+    private State P1TwisterFireball(uint id, float delay)
     {
         P1Twister(id, delay, true);
-        P1FireballResolve(id + 0x10, 2.8f);
+        return P1FireballResolve(id + 0x10, 2.8f);
     }
 
     private void P1LiquidHell(uint id, float delay, bool withFireball = false)
     {
         ComponentCondition<P1LiquidHell>(id, delay, comp => comp.NumCasts >= 1, "Puddle 1")
             .ActivateOnEnter<P1Fireball>(withFireball)
-            .ExecOnEnter<P1Fireball>(f => f.EnableHints = false, withFireball)
             .ExecOnEnter<P1LiquidHell>(comp => comp.Reset(delay, withFireball ? Ultimate.UCOB.P1LiquidHell.BaitMode.Random : Ultimate.UCOB.P1LiquidHell.BaitMode.Proximity));
         ComponentCondition<P1LiquidHell>(id + 1, 1.2f, comp => comp.NumCasts >= 2);
         ComponentCondition<P1LiquidHell>(id + 2, 1.2f, comp => comp.NumCasts >= 3);
         ComponentCondition<P1LiquidHell>(id + 3, 1.2f, comp => comp.NumCasts >= 4);
-        ComponentCondition<P1LiquidHell>(id + 4, 1.2f, comp => comp.NumCasts >= 5, "Puddle 5")
-            .ExecOnExit<P1Fireball>(f => f.EnableHints = true, withFireball);
+        ComponentCondition<P1LiquidHell>(id + 4, 1.2f, comp => comp.NumCasts >= 5, "Puddle 5");
     }
 
     private void P1LiquidHellFireball(uint id, float delay)
@@ -268,6 +264,7 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Tankbuster);
         ActorTargetable(id + 0x31, _module.Nael, true, 2, "Boss appears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
+            .ExecOnExit<P2HugNael>(p => p.Mode = P2HugNael.Pos.DonutChainLightning1)
             .DeactivateOnExit<P2HeavensfallDalamudDive>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
@@ -293,12 +290,14 @@ class UCOBStates : StateMachineBuilder
         // +0.8s: iceball 3
         // +2.8s: iceball 4
         ComponentCondition<Quote>(id + 0x30, 3.1f, comp => comp.PendingMechanics.Count == 0, "Out/Stack")
+            .ExecOnEnter<P2HugNael>(n => n.Mode = P2HugNael.Pos.PostChainLightning1)
             .ActivateOnEnter<QuoteThermionicBeam>()
             .ActivateOnEnter<P2BahamutsFavorFireball>() // tether appears ~0.6s after in
             .DeactivateOnExit<QuoteIronChariotLunarDynamo>()
             .DeactivateOnExit<QuoteThermionicBeam>()
             .DeactivateOnExit<Quote>()
-            .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show());
+            .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show())
+            .ExecOnExit<P2HugNael>(n => n.Mode = P2HugNael.Pos.Standard);
 
         ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x100, 0.7f, comp => comp.NumDeathstorms > 0) // wings of salvation 1 bait at the same time
             .ActivateOnEnter<P2BahamutsFavorDeathstorm>(); // dooms are applied ~1.0s after deathstorm cast

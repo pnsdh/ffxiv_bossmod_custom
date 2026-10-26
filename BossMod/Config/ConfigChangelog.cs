@@ -100,7 +100,7 @@ class SmartRotationNotice : ChangelogNotice
 
     public override void Draw()
     {
-        using (ImRaii.PushFont(Service.MonoFont))
+        using (ImRaii.PushFont(Service.UiBuilder.FontMono))
             ImGui.TextUnformatted(Loc.Tr("Smart character orientation"));
         ImGui.SameLine();
         ImGui.TextUnformatted(Loc.Tr("has been changed to be enabled by default. You can disable it in Settings -> Action Tweaks."));
@@ -148,7 +148,7 @@ class MacroNotice : ChangelogNotice
     {
         ImGui.Text(Loc.Tr("You can now use"));
         ImGui.SameLine();
-        using (ImRaii.PushFont(Service.MonoFont))
+        using (ImRaii.PushFont(Service.UiBuilder.FontMono))
             ImGui.Text(Loc.Tr("/vbm macro"));
         ImGui.SameLine();
         ImGui.Text(Loc.Tr("in your macros to enable custom queueing for the duration of the macro."));

@@ -47,7 +47,7 @@ public sealed class ModuleViewer : IDisposable
         _expansions = [.. Enum.GetNames<BossModuleInfo.Expansion>().Take((int)BossModuleInfo.Expansion.Count).Select(n => (n, defaultIcon))];
         _categories = [.. Enum.GetNames<BossModuleInfo.Category>().Take((int)BossModuleInfo.Category.Count).Select(n => (n, defaultIcon))];
 
-        var exVersion = Service.LuminaSheet<ExVersion>()!;
+        var exVersion = Service.LuminaSheet<ExVersion>();
         Customize(BossModuleInfo.Expansion.RealmReborn, 61875, exVersion.GetRow(0).Name);
         Customize(BossModuleInfo.Expansion.Heavensward, 61876, exVersion.GetRow(1).Name);
         Customize(BossModuleInfo.Expansion.Stormblood, 61877, exVersion.GetRow(2).Name);
@@ -56,7 +56,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Expansion.Dawntrail, 61880, exVersion.GetRow(5).Name);
         Customize(BossModuleInfo.Expansion.Global, 61875, Loc.Tr("Global"));
 
-        var contentType = Service.LuminaSheet<ContentType>()!;
+        var contentType = Service.LuminaSheet<ContentType>();
         Customize(BossModuleInfo.Category.Uncategorized, contentType.GetRow(1), "Uncategorized");
         Customize(BossModuleInfo.Category.Dungeon, contentType.GetRow(2));
         Customize(BossModuleInfo.Category.Trial, contentType.GetRow(4), "Normal Trials");
@@ -78,7 +78,7 @@ public sealed class ModuleViewer : IDisposable
         Customize(BossModuleInfo.Category.Criterion, contentType.GetRow(30), "Criterion Dungeons");
         Customize(BossModuleInfo.Category.HallOfTheNovice, contentType.GetRow(20), "Hall of the Novice");
 
-        var playStyle = Service.LuminaSheet<CharaCardPlayStyle>()!;
+        var playStyle = Service.LuminaSheet<CharaCardPlayStyle>();
         Customize(BossModuleInfo.Category.Foray, playStyle.GetRow(6));
         Customize(BossModuleInfo.Category.MaskedCarnivale, playStyle.GetRow(8));
         Customize(BossModuleInfo.Category.Crucible, playStyle.GetRow(35));
@@ -112,7 +112,7 @@ public sealed class ModuleViewer : IDisposable
             }
             else if (groups[groupIndex].Info != groupInfo)
             {
-                Service.Log($"[ModuleViewer] Group properties mismatch between {groupInfo} and {groups[groupIndex].Info}");
+                Service.PluginLog.Warning($"[ModuleViewer] Group properties mismatch between {groupInfo} and {groups[groupIndex].Info}");
             }
             groups[groupIndex].Modules.Add(moduleInfo);
         }
@@ -122,14 +122,14 @@ public sealed class ModuleViewer : IDisposable
             groups.SortBy(g => g.Info.SortOrder);
             foreach (var (g1, g2) in groups.Pairwise())
                 if (g1.Info.SortOrder == g2.Info.SortOrder)
-                    Service.Log($"[ModuleViewer] Same sort order between groups {g1.Info} and {g2.Info}");
+                    Service.PluginLog.Warning($"[ModuleViewer] Same sort order between groups {g1.Info} and {g2.Info}");
 
             foreach (var g in groups)
             {
                 g.Modules.SortBy(m => m.SortOrder);
                 foreach (var (m1, m2) in g.Modules.Pairwise())
                     if (m1.SortOrder == m2.SortOrder)
-                        Service.Log($"[ModuleViewer] Same sort order between modules {m1.Info.ModuleType.FullName} and {m2.Info.ModuleType.FullName}");
+                        Service.PluginLog.Warning($"[ModuleViewer] Same sort order between modules {m1.Info.ModuleType.FullName} and {m2.Info.ModuleType.FullName}");
             }
         }
     }
@@ -277,7 +277,7 @@ public sealed class ModuleViewer : IDisposable
         {
             ImGui.Image(tex.Handle, _iconSize, Vector2.Zero, Vector2.One, tintCol);
             if (ex != null)
-                Service.Logger.Warning(ex, $"unable to load icon {iconId}");
+                Service.PluginLog.Warning(ex, $"unable to load icon {iconId}");
         }
 
         ImGui.TableNextColumn();

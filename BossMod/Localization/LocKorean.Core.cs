@@ -138,6 +138,11 @@ static partial class LocKorean
         ("Enable priority tracing", "우선순위 추적 사용"),
         ("Only useful for debugging. Will slightly reduce performance.", "디버깅에만 유용합니다. 성능이 약간 저하됩니다."),
         // BossMod/BossModule/BossModuleConfig.cs
+        ("Wrap upcoming mechanics onto multiple lines", "다음 기믹을 여러 줄로 표시"),
+        ("If disabled, upcoming mechanics are shown on a single line.\r\nIf they do not all fit, the next mechanic is always shown, then plain mechanics are hidden before tankbusters, raidwides and knockbacks.\r\nWhen wrapping, the number of lines is still limited by the reserved text lines setting below.", "끄면 다음 기믹을 한 줄로 표시합니다.\r\n다 들어가지 않으면 바로 다음 기믹은 항상 표시하고, 탱버·전체 공격·넉백보다 일반 기믹을 먼저 숨깁니다.\r\n여러 줄로 표시할 때도 줄 수는 아래의 텍스트 줄 수 설정을 넘지 않습니다."),
+        ("Maximum number of upcoming mechanics to show", "표시할 다음 기믹 최대 개수"),
+        ("Text lines reserved above the radar", "레이더 위에 확보할 텍스트 줄 수"),
+        ("Text hints use this many lines above the radar, so the radar stays in place.\r\nIf there is not enough room, the mechanic sequence is shortened first so player and raidwide hints stay visible.\r\nSet to 0 to let the text grow and push the radar down. Has no effect if text hints are in a separate window.", "텍스트 힌트가 레이더 위에서 이만큼의 줄을 차지해서, 레이더 위치가 움직이지 않습니다.\r\n자리가 모자라면 기믹 순서를 먼저 줄여서 개인 힌트와 전체 공격 힌트는 계속 보이게 합니다.\r\n0으로 두면 텍스트가 늘어나는 만큼 레이더가 아래로 밀립니다. 텍스트 힌트를 별도 창에 표시할 때는 효과가 없습니다."),
         ("Boss Modules and Radar", "보스 모듈 및 레이더"),
         ("Open settings dialog", "설정 창 열기"),
         ("Hide radar", "레이더 숨기기"),

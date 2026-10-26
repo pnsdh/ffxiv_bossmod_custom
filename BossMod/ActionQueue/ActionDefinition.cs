@@ -150,17 +150,19 @@ public sealed record class ActionDefinition(ActionID ID)
         return AllowedClasses[(int)player.Class] && checkLevel >= MinLevel && LinkUnlocked(UnlockLink);
     }
 
-    private static bool LinkUnlocked(uint link) => link == 0 || (ActionDefinitions.Instance.UnlockCheck?.Invoke(link) ?? true);
+    // FIXME: replays need to have quest state attached, this will just return whatever is unlocked on your actual character
+    // TODO: make a convenient UI for editing these in dalamock
+    private static bool LinkUnlocked(uint link) => Service.IsMock || link == 0 || Service.UnlockState.IsUnlockLinkUnlocked(link);
 }
 
 // database of all supported player-initiated actions
 // note that it is associated to a specific worldstate, so that it can be used for things like action conditions
 public sealed class ActionDefinitions
 {
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>()!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Item>()!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory")!;
-    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>()!;
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Action> _actionsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Action>();
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Item> _itemsSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Item>();
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.RawRow> _cjcSheet = Service.LuminaGameData!.Excel.GetSheet<Lumina.Excel.RawRow>(null, "ClassJobCategory");
+    private readonly Lumina.Excel.ExcelSheet<Lumina.Excel.Sheets.Trait> _traitSheet = Service.LuminaSheet<Lumina.Excel.Sheets.Trait>();
     private readonly Dictionary<ActionID, ActionDefinition> _definitions = [];
 
     public IEnumerable<ActionDefinition> Definitions => _definitions.Values;
@@ -210,8 +212,6 @@ public sealed class ActionDefinitions
     public static readonly ActionID IDGeneralDuty2 = new(ActionType.General, 27);
 
     public static readonly ActionDefinitions Instance = new();
-
-    public Func<uint, bool>? UnlockCheck;
 
     private ActionDefinitions()
     {
@@ -511,7 +511,7 @@ public sealed class ActionDefinitions
     // hardcoded mechanic implementations
     public void RegisterChargeIncreaseTrait(ActionID aid, uint traitId)
     {
-        var trait = TraitData(traitId)!;
+        var trait = TraitData(traitId);
         _definitions[aid].MaxChargesOverride.Add((trait.Value, trait.Level, trait.Quest.RowId));
         _definitions[aid].MaxChargesOverride.SortByReverse(c => c.Level);
     }

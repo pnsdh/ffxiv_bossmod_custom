@@ -9,39 +9,12 @@ using Lumina.Data.Files;
 
 namespace BossMod.ReplayVisualization;
 
-internal class GaugeVisualizer
+public sealed class GaugeVisualizer(IFontAtlas fontAtlas) : IDisposable
 {
-    private static GaugeVisualizer? _instance;
 
-    public static GaugeVisualizer Instance()
-    {
-        _instance ??= new();
-        return _instance;
-    }
-
-    public static void Dispose()
-    {
-        _instance?.DisposeInstance();
-        _instance = null;
-    }
-
-    void DisposeInstance()
-    {
-        foreach (var t in _tex.Values)
-            t.Dispose();
-
-        _tex.Clear();
-        GaugeFont.Dispose();
-    }
-
-    readonly IFontHandle GaugeFont;
+    readonly IFontHandle GaugeFont = fontAtlas.NewGameFontHandle(new GameFontStyle(GameFontFamilyAndSize.MiedingerMid18));
 
     readonly Dictionary<string, IDalamudTextureWrap> _tex = [];
-
-    private GaugeVisualizer()
-    {
-        GaugeFont = Service.FontAtlas.NewGameFontHandle(new GameFontStyle(GameFontFamilyAndSize.MiedingerMid18));
-    }
 
     public void Draw(Actor player, ClientState clientState)
     {
@@ -54,13 +27,16 @@ internal class GaugeVisualizer
                 DrawDRK(player, clientState);
                 break;
             case Class.SCH:
-                DrawSCH(player, clientState);
+                DrawSCH(clientState);
                 break;
             case Class.MNK:
-                DrawMNK(player, clientState);
+                DrawMNK(clientState);
                 break;
             case Class.BLM:
                 DrawBLM(player, clientState);
+                break;
+            case Class.BST:
+                DrawBST(clientState);
                 break;
         }
     }
@@ -196,7 +172,7 @@ internal class GaugeVisualizer
         }
     }
 
-    private void DrawSCH(Actor player, ClientState clientState)
+    private void DrawSCH(ClientState clientState)
     {
         var gauge = clientState.GetGauge<ScholarGauge>();
         var origin = ImGui.GetCursorPos();
@@ -206,7 +182,7 @@ internal class GaugeVisualizer
         DrawDiamond(origin + Scale(38, 0), "sch_aetherflow", gauge.Aetherflow > 2, [-50, 100, 0]);
     }
 
-    private void DrawMNK(Actor player, ClientState clientState)
+    private void DrawMNK(ClientState clientState)
     {
         var gauge = clientState.GetGauge<MonkGauge>();
         var origin = ImGui.GetCursorPos();
@@ -305,9 +281,6 @@ internal class GaugeVisualizer
             ImGui.Image(wrap.Handle, Scale(32, 32), new Vector2(0.5255f, 0.7473f), new Vector2(0.6071f, 0.8352f));
         }
 
-        // chevron starts at 2307
-        // enochian starts at 2243
-
         DrawBar(origin + Scale(30, 7), "enochian", 20 - gauge.EnochianTimer * 0.001f, 20, [80, 20, 100]);
 
         DrawDiamond(origin + Scale(182, 0), "blm_poly", gauge.PolyglotStacks > 0, [60, -60, -10]);
@@ -363,5 +336,25 @@ internal class GaugeVisualizer
                 ImGui.Image(chevronLit.Handle, new Vector2(32, 32), new Vector2(0.5f, 0), new Vector2(1, 0.5f));
             }
         }
+    }
+
+    private void DrawBST(ClientState clientState)
+    {
+        var gauge = clientState.GetGauge<BeastmasterGauge>();
+
+        var origin = ImGui.GetCursorPos();
+
+        DrawBar(origin, "bstyellow", gauge.TPGauge, 250, [100, 100, -20], true);
+
+        DrawBar(origin + Scale(0, 48), "bstblue", gauge.PetTPGauge, 250, [0, 100, 100], true);
+    }
+
+    public void Dispose()
+    {
+        foreach (var t in _tex.Values)
+            t.Dispose();
+
+        _tex.Clear();
+        GaugeFont.Dispose();
     }
 }

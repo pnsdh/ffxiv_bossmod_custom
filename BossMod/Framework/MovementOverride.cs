@@ -2,11 +2,15 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.Config;
 using Dalamud.Plugin;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.System.Input;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using Microsoft.Extensions.Hosting;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace BossMod;
 
@@ -28,7 +32,7 @@ public unsafe struct MoveControllerSubMemberForMine
     [FieldOffset(0x94)] public byte Spinning;
 }
 
-public sealed unsafe class MovementOverride : IMovementOverride
+public sealed unsafe class MovementOverride(IDalamudPluginInterface dalamud, IGameConfig gameConfig) : IMovementOverride, IHostedService, IDisposable
 {
     public Vector3? DesiredDirection { get; set; }
     public Angle MisdirectionThreshold { get; set; }
@@ -37,7 +41,6 @@ public sealed unsafe class MovementOverride : IMovementOverride
     public WDir UserMove { get; private set; } // unfiltered movement direction, as read from input
     public WDir ActualMove { get; private set; } // actual movement direction, as of last input read
 
-    private readonly IDalamudPluginInterface _dalamud;
     private readonly ActionTweaksConfig _tweaksConfig = Service.Config.Get<ActionTweaksConfig>();
     private bool? _forcedControlState;
     private bool _legacyMode;
@@ -61,45 +64,47 @@ public sealed unsafe class MovementOverride : IMovementOverride
         set;
     }
 
-    public static readonly float* ForcedMovementDirection = (float*)Service.SigScanner.GetStaticAddressFromSig("F3 0F 11 0D ?? ?? ?? ?? 48 85 DB");
+    public float* ForcedMovementDirection { get; private set; }
 
+#nullable disable
     private delegate bool RMIWalkIsInputEnabled(void* self);
-    private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled1;
-    private readonly RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
+    private RMIWalkIsInputEnabled _rmiWalkIsInputEnabled1;
+    private RMIWalkIsInputEnabled _rmiWalkIsInputEnabled2;
 
     private delegate void RMIWalkDelegate(MoveControllerSubMemberForMine* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
-    private readonly HookAddress<RMIWalkDelegate> _rmiWalkHook;
+    private HookAddress<RMIWalkDelegate> _rmiWalkHook;
 
     private delegate void RMIFlyDelegate(void* self, PlayerMoveControllerFlyInput* result);
-    private readonly HookAddress<RMIFlyDelegate> _rmiFlyHook;
+    private HookAddress<RMIFlyDelegate> _rmiFlyHook;
 
     // input source flags: 1 = kb/mouse, 2 = gamepad
     private delegate byte MoveControlIsInputActiveDelegate(void* self, byte inputSourceFlags);
-    private readonly HookAddress<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
+    private HookAddress<MoveControlIsInputActiveDelegate> _mcIsInputActiveHook;
+#nullable restore
 
-    public MovementOverride(IDalamudPluginInterface dalamud)
+    async Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
-        _dalamud = dalamud;
+        ForcedMovementDirection = (float*)Service.SigScanner.GetStaticAddressFromSig("F3 0F 11 0D ?? ?? ?? ?? 48 85 DB");
 
-        var rmiWalkIsInputEnabled1Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
-        var rmiWalkIsInputEnabled2Addr = Service.SigScanner.ScanText("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
-        Service.Log($"RMIWalkIsInputEnabled1 address: 0x{rmiWalkIsInputEnabled1Addr:X}");
-        Service.Log($"RMIWalkIsInputEnabled2 address: 0x{rmiWalkIsInputEnabled2Addr:X}");
-        _rmiWalkIsInputEnabled1 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled1Addr);
-        _rmiWalkIsInputEnabled2 = Marshal.GetDelegateForFunctionPointer<RMIWalkIsInputEnabled>(rmiWalkIsInputEnabled2Addr);
+        _rmiWalkIsInputEnabled1 = HookAddress<RMIWalkIsInputEnabled>.FnPtr("E8 ?? ?? ?? ?? 84 C0 75 10 38 43 3C");
+        _rmiWalkIsInputEnabled2 = HookAddress<RMIWalkIsInputEnabled>.FnPtr("E8 ?? ?? ?? ?? 84 C0 75 03 88 47 3F");
 
         _rmiWalkHook = new("E8 ?? ?? ?? ?? 80 7B 3E 00 48 8D 3D", RMIWalkDetour);
         _rmiFlyHook = new("E8 ?? ?? ?? ?? 0F B6 0D ?? ?? ?? ?? B8", RMIFlyDetour);
         _mcIsInputActiveHook = new("E8 ?? ?? ?? ?? 84 C0 74 09 84 DB 74 1A", MCIsInputActiveDetour);
 
-        Service.GameConfig.UiControlChanged += OnConfigChanged;
+        gameConfig.UiControlChanged += OnConfigChanged;
         UpdateLegacyMode();
+    }
+
+    async Task IHostedService.StopAsync(CancellationToken cancellationToken)
+    {
+        dalamud.RelinquishData("vnav.PathIsRunning");
+        gameConfig.UiControlChanged -= OnConfigChanged;
     }
 
     public void Dispose()
     {
-        _dalamud.RelinquishData("vnav.PathIsRunning");
-        Service.GameConfig.UiControlChanged -= OnConfigChanged;
         MovementBlocked = false;
         _mcIsInputActiveHook.Dispose();
         _rmiWalkHook.Dispose();
@@ -108,7 +113,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
 
     public bool FollowPathActive()
     {
-        if (_navmeshPathIsRunning == null && _dalamud.TryGetData<bool[]>("vnav.PathIsRunning", out var data))
+        if (_navmeshPathIsRunning == null && dalamud.TryGetData<bool[]>("vnav.PathIsRunning", out var data))
             _navmeshPathIsRunning = data;
 
         return _navmeshPathIsRunning != null && _navmeshPathIsRunning[0];
@@ -225,7 +230,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
         return (dirH - ForwardMovementDirection(), dirV);
     }
 
-    private Angle ForwardMovementDirection() => _legacyMode ? Camera.Instance()!.CameraAzimuth.Radians() + 180.Degrees() : GameObjectManager.Instance()->Objects.IndexSorted[0].Value->Rotation.Radians();
+    private Angle ForwardMovementDirection() => _legacyMode ? Service.Camera.CameraAzimuth.Radians() + 180.Degrees() : GameObjectManager.Instance()->Objects.IndexSorted[0].Value->Rotation.Radians();
 
     private bool PlayerHasMisdirection()
     {
@@ -242,7 +247,7 @@ public sealed unsafe class MovementOverride : IMovementOverride
     private void OnConfigChanged(object? sender, ConfigChangeEvent evt) => UpdateLegacyMode();
     private void UpdateLegacyMode()
     {
-        _legacyMode = Service.GameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
+        _legacyMode = gameConfig.UiControl.TryGetUInt("MoveMode", out var mode) && mode == 1;
         Service.Log($"Legacy mode is now {(_legacyMode ? "enabled" : "disabled")}");
     }
 }

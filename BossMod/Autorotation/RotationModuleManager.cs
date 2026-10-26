@@ -33,7 +33,8 @@ public sealed class RotationModuleManager : IDisposable
     public static readonly Preset ForceDisable = new(""); // empty preset, so if it's activated, rotation is force disabled
 
     private readonly AIConfig _aiConfig = Service.Config.Get<AIConfig>();
-    private readonly Preset _pMultibox;
+
+    private Preset? PresetMultibox => Database.Presets.DefaultPresets.FirstOrDefault(p => p.Name == "VBM Multibox");
 
     public bool IsForceDisabled => Presets.Count == 1 && Presets[0] == ForceDisable;
 
@@ -85,7 +86,6 @@ public sealed class RotationModuleManager : IDisposable
         Bossmods = bmm;
         PlayerSlot = playerSlot;
         Hints = hints;
-        _pMultibox = Database.Presets.DefaultPresets.First(f => f.Name == "VBM Multibox");
         _subscriptions = new
         (
             WorldState.Actors.Added.Subscribe(a => DirtyActiveModules(PlayerInstanceId == a.InstanceID)),
@@ -120,20 +120,23 @@ public sealed class RotationModuleManager : IDisposable
     {
         // see whether current plan matches what should be active, and update if not; only rebuild actions if there is no active override
         var expectedPlan = CalculateExpectedPlan();
-        if (Planner?.Module != Bossmods.ActiveModule || Planner?.Plan != expectedPlan)
+        if (Planner?.Module != Bossmods.DrawnModule || Planner?.Plan != expectedPlan)
         {
             Service.Log($"[RMM] Changing active plan: '{Planner?.Plan?.Guid}' -> '{expectedPlan?.Guid}'");
-            Planner = Bossmods.ActiveModule != null ? new(Bossmods.ActiveModule, expectedPlan) : null;
+            Planner = Bossmods.DrawnModule != null ? new(Bossmods.DrawnModule, expectedPlan) : null;
             DirtyActiveModules(Presets.Count == 0);
         }
 
         // rebuild modules if needed
         if (_activeModules == null)
         {
-            // ensure AI compatibility status matches config option, unless force disabled
-            Presets.Remove(_pMultibox);
-            if (_aiConfig.Enabled && !Presets.Contains(ForceDisable))
-                Presets.Add(_pMultibox);
+            if (PresetMultibox is { } mbox)
+            {
+                // ensure AI compatibility status matches config option, unless force disabled
+                Presets.Remove(mbox);
+                if (_aiConfig.Enabled && !Presets.Contains(ForceDisable))
+                    Presets.Add(mbox);
+            }
 
             _activeModules ??= Presets.Count > 0 ? [.. Presets.SelectMany((p, i) => RebuildActiveModules(p.Modules, i))] : Planner?.Plan != null ? RebuildActiveModules(Planner.Plan.Modules, 0) : [];
         }
@@ -149,7 +152,7 @@ public sealed class RotationModuleManager : IDisposable
         {
             Hints.ForcedTarget = forced.Target != StrategyTarget.Automatic
                 ? ResolveTargetOverride(forced.Target, forced.TargetParam)
-                : (ResolveTargetOverride(StrategyTarget.EnemyWithHighestPriority, 0) ?? Bossmods.ActiveModule?.GetDefaultTarget(PlayerSlot));
+                : (ResolveTargetOverride(StrategyTarget.EnemyWithHighestPriority, 0) ?? Bossmods.DrawnModule?.GetDefaultTarget(PlayerSlot));
         }
 
         // auto actions
@@ -183,7 +186,7 @@ public sealed class RotationModuleManager : IDisposable
     {
         StrategyTarget.PointAbsolute => new(off1, off2),
         StrategyTarget.PointWaymark => WorldState.Waymarks[(Waymark)param] is var wm && wm != null ? new WPos(wm.Value.XZ()) + off1 * off2.Degrees().ToDirection() : default,
-        StrategyTarget.PointCenter or StrategyTarget.Automatic => (Bossmods.ActiveModule?.Center + off1 * off2.Degrees().ToDirection()) ?? Player?.Position ?? default,
+        StrategyTarget.PointCenter or StrategyTarget.Automatic => (Bossmods.DrawnModule?.Center + off1 * off2.Degrees().ToDirection()) ?? Player?.Position ?? default,
         _ => (ResolveTargetOverride(strategy, param)?.Position + off1 * off2.Degrees().ToDirection()) ?? Player?.Position ?? default,
     };
 
@@ -278,11 +281,11 @@ public sealed class RotationModuleManager : IDisposable
     private Plan? CalculateExpectedPlan()
     {
         var player = Player;
-        if (player == null || Bossmods.ActiveModule == null)
+        if (player == null || Bossmods.DrawnModule == null)
             return null; // nothing loaded/active, so no plan
-        if (Bossmods.ActiveModule.StateMachine.ActiveState == null && WorldState.Client.CountdownRemaining == null)
+        if (Bossmods.DrawnModule.StateMachine.ActiveState == null && WorldState.Client.CountdownRemaining == null)
             return null; // neither pull nor prepull
-        var plans = Database.Plans.GetPlans(Bossmods.ActiveModule.GetType(), player.Class);
+        var plans = Database.Plans.GetPlans(Bossmods.DrawnModule.GetType(), player.Class);
         return plans.SelectedIndex >= 0 ? plans.Plans[plans.SelectedIndex] : null;
     }
 

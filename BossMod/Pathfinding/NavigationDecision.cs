@@ -37,16 +37,20 @@ public struct NavigationDecision
     // 3. unknown (variable) amount of delay between movement packet being sent and server deciding to update our position; can be bypassed (kind of) by forcing a position update through various means
     //  - jumping (has its own issues; player gets stuck in the air for a bit, you can't steer while jumping, etc)
     //  - sending position update packet (not an option, can't be done in the vanilla client, so it doesn't match our philosophy)
-    // TODO: make configurable?
-    public static float CushionFromRTT(float rtt) => rtt + 0.3f + ActorCastInfo.NPCFinishDelay;
+    public static float CushionFromRTT(float rtt) => rtt + 0.5f + ActorCastInfo.NPCFinishDelay;
 
-    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion)
+    public static NavigationDecision Build(Context ctx, DateTime currentTime, AIHints hints, WPos playerPosition, float playerSpeed, float rtt, float spaceCushion, bool useOldRasterizer = false)
     {
         var startTime = DateTime.Now;
 
         hints.InitPathfindMap(ctx.Map);
         if (hints.ForbiddenZones.Count > 0)
-            RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
+        {
+            if (useOldRasterizer)
+                RasterizeForbiddenZonesOld(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
+            else
+                RasterizeForbiddenZones(ctx.Map, hints.ForbiddenZones, currentTime, ctx.ScratchG, ctx.ScratchD, rtt, spaceCushion);
+        }
         if (hints.GoalZones.Count > 0 && hints.GoalZonesEnabled)
             RasterizeGoalZones(ctx.Map, hints.GoalZones, spaceCushion > 0);
         else if (spaceCushion > 0)

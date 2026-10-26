@@ -21,9 +21,9 @@ public sealed class LocalizationConfig : ConfigNode
 
     private string _lastExport = "";
 
-    public override void DrawCustom(UITree tree, WorldState ws, RotationDatabase? db)
+    public override void DrawCustom(string? page, UITree tree, WorldState ws, RotationDatabase? db)
     {
-        if (Language == UILanguage.English)
+        if (page is not (null or "") || Language == UILanguage.English)
             return;
 
         ImGui.TextUnformatted(Loc.Tr($"Untranslated texts seen so far: {Loc.Misses.Count}"));

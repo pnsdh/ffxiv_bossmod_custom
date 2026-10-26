@@ -339,6 +339,7 @@ static partial class LocKorean
         ("Melee together", "근딜끼리"),
         ("DD CCW", "딜러 반시계방향"),
         // BossMod.Ultimate/Stormblood/Ultimate/UCOB/UCOBConfig.cs
+        ("Twister prediction window", "회오리 예측 시간"),
         ("P1 Fireball 1: add stack-avoid hints for tanks and healer", "P1 화염구 1: 탱커와 힐러에게 쉐어 회피 힌트 추가"),
         ("P3 Quickmarch/Heavensfall Trio: safespot assignments (assuming bahamut is relative north/up, group L goes left; L1/R1 closest to bosses)", "P3 진군의 3중주/천지의 3중주: 안전지대 배정 (바하무트 프라임을 상대 북쪽/위로 가정, L 그룹은 왼쪽; L1/R1이 보스에 가장 가까움)"),
         ("L1", "L1"),

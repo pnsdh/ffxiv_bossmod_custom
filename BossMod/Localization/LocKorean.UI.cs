@@ -307,6 +307,8 @@ static partial class LocKorean
 
         // BossMod/Framework/DtrConfig.cs
         ("Server info bar", "서버 정보 표시줄"),
+        ("Interface", "인터페이스"),
+        ("Hide windows when game UI is hidden", "게임 UI를 숨기면 창도 숨기기"),
         ("Dtr", "서버 정보 표시줄"),
         ("Show autorotation status", "자동 로테이션 상태 표시"),
         ("Show legacy AI status", "기존 AI 상태 표시"),
