@@ -126,6 +126,15 @@ public abstract partial class AutoClear : ZoneModule
 
         LoadedFloors = Utils.LoadResource<Dictionary<string, Floor<Wall>>>("BossMod.Global.DeepDungeon.Walls.json");
         ProblematicTrapLocations = Utils.LoadResource<List<WPos>>("BossMod.Global.DeepDungeon.BadTraps.json");
+
+        // check if module got reloaded during an active run
+        if (ws.DeepDungeon.Rooms.Any(d => d > 0))
+        {
+            LoadWalls();
+            LoadGeometry();
+            FilterTraps();
+            BetweenFloors = false;
+        }
     }
 
     protected override void Dispose(bool disposing)

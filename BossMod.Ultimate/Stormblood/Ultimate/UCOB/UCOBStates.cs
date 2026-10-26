@@ -264,7 +264,7 @@ class UCOBStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Tankbuster);
         ActorTargetable(id + 0x31, _module.Nael, true, 2, "Boss appears")
             .ExecOnEnter<Hatch>(comp => comp.Active = true)
-            .ExecOnExit<P2HugNael>(p => p.Mode = P2HugNael.Pos.DonutChainLightning1)
+            .ExecOnExit<P2HugNael>(p => p.Mode = P2HugNael.Pos.QuoteChainLightning1)
             .DeactivateOnExit<P2HeavensfallDalamudDive>()
             .SetHint(StateMachine.StateHint.DowntimeEnd);
 
@@ -279,7 +279,7 @@ class UCOBStates : StateMachineBuilder
         ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x10, 8, comp => comp.ActiveOrSkipped())
             .ActivateOnEnter<Quote>()
             .ActivateOnEnter<P2BahamutsFavorChainLightning>()
-            .ExecOnEnter<P2BahamutsFavorChainLightning>(p => p.FirstSet = true);
+            .ExecOnEnter<P2BahamutsFavorChainLightning>(p => p.SetNumber = 1);
         ComponentCondition<Quote>(id + 0x11, 0.1f, comp => comp.PendingMechanics.Count > 0); // first quote
         // +1.9s: iceball 1
         // +3.9s: iceball 2
@@ -290,14 +290,13 @@ class UCOBStates : StateMachineBuilder
         // +0.8s: iceball 3
         // +2.8s: iceball 4
         ComponentCondition<Quote>(id + 0x30, 3.1f, comp => comp.PendingMechanics.Count == 0, "Out/Stack")
-            .ExecOnEnter<P2HugNael>(n => n.Mode = P2HugNael.Pos.PostChainLightning1)
             .ActivateOnEnter<QuoteThermionicBeam>()
             .ActivateOnEnter<P2BahamutsFavorFireball>() // tether appears ~0.6s after in
             .DeactivateOnExit<QuoteIronChariotLunarDynamo>()
             .DeactivateOnExit<QuoteThermionicBeam>()
             .DeactivateOnExit<Quote>()
             .ExecOnExit<P2BahamutsFavorFireball>(comp => comp.Show())
-            .ExecOnExit<P2HugNael>(n => n.Mode = P2HugNael.Pos.Standard);
+            .ExecOnExit<P2HugNael>(n => n.Mode = P2HugNael.Pos.Set1);
 
         ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x100, 0.7f, comp => comp.NumDeathstorms > 0) // wings of salvation 1 bait at the same time
             .ActivateOnEnter<P2BahamutsFavorDeathstorm>(); // dooms are applied ~1.0s after deathstorm cast
@@ -326,7 +325,11 @@ class UCOBStates : StateMachineBuilder
 
         ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x200, 2.5f, comp => comp.ActiveOrSkipped())
             .ActivateOnEnter<P2BahamutsFavorChainLightning>()
-            .ExecOnEnter<P2BahamutsFavorChainLightning>(p => p.EnableHints = false);
+            .ExecOnEnter<P2BahamutsFavorChainLightning>(p =>
+            {
+                p.EnableHints = false;
+                p.SetNumber = 2;
+            });
         ComponentCondition<P2BahamutsFavorFireball>(id + 0x210, 1.0f, comp => !comp.Active, "Fireball 2")
             .DeactivateOnExit<P2BahamutsFavorFireball>()
             .ExecOnExit<P2BahamutsFavorChainLightning>(p => p.EnableHints = true);
@@ -339,17 +342,19 @@ class UCOBStates : StateMachineBuilder
             .DeactivateOnExit<QuoteThermionicBeam>();
         ComponentCondition<Quote>(id + 0x250, 3.1f, comp => comp.PendingMechanics.Count == 0, "In/out")
             .ActivateOnEnter<QuoteIronChariotLunarDynamo>()
+            .ExecOnEnter<P2HugNael>(p => p.Mode = P2HugNael.Pos.Sets23)
             .DeactivateOnExit<QuoteIronChariotLunarDynamo>()
             .DeactivateOnExit<Quote>();
 
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x300, 0.7f, comp => comp.Casters.Count > 0) // wings of salvation 1 bait
-            .ActivateOnEnter<P2BahamutsFavorWingsOfSalvation>();
+            .ActivateOnEnter<P2BahamutsFavorWingsOfSalvation>()
+            .ActivateOnEnter<P2BahamutsFavorChainLightning>()
+            .ExecOnEnter<P2BahamutsFavorChainLightning>(p => p.SetNumber = 3);
         ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x301, 0.8f, comp => comp.NumDeathstorms > 1);
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x303, 2.2f, comp => comp.NumCasts > 0);
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x310, 1.2f, comp => comp.Casters.Count > 0); // wings of salvation 2 bait
         // +2.1s: iceball 9
-        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x312, 2.8f, comp => comp.ActiveOrSkipped())
-            .ActivateOnEnter<P2BahamutsFavorChainLightning>();
+        ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x312, 2.8f, comp => comp.ActiveOrSkipped());
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x313, 0.2f, comp => comp.NumCasts > 1);
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x320, 1.2f, comp => comp.Casters.Count > 0); // wings of salvation 3 bait
         // +0.0s: iceball 10
@@ -393,7 +398,8 @@ class UCOBStates : StateMachineBuilder
             .ActivateOnEnter<P2BahamutsFavorWingsOfSalvation>();
         ComponentCondition<P2BahamutsFavorDeathstorm>(id + 0x601, 0.5f, comp => comp.NumDeathstorms > 2);
         ComponentCondition<P2BahamutsFavorChainLightning>(id + 0x610, 2.3f, comp => !comp.Active, "Lightning spread", checkDelay: 2.3f) // lighting target can die early, which would trigger premature transition
-            .DeactivateOnExit<P2BahamutsFavorChainLightning>();
+            .DeactivateOnExit<P2BahamutsFavorChainLightning>()
+            .ExecOnExit<P2HugNael>(p => p.Mode = P2HugNael.Pos.None);
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x611, 0.2f, comp => comp.NumCasts > 0);
         ComponentCondition<P2BahamutsFavorWingsOfSalvation>(id + 0x620, 1.2f, comp => comp.Casters.Count > 0); // wings of salvation 2 bait
         // +1.2s: iceball 17

@@ -98,6 +98,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud), IA
 
             Service.IsDev = dalamud.IsDev;
 
+            Service.MPS = scope.Resolve<ModulePackService>();
             Service.Config = scope.Resolve<ConfigRoot>();
             Service.LuminaGameData = scope.Resolve<IDataManager>().GameData;
             Service.Mediator = scope.Resolve<MediatorService>();
