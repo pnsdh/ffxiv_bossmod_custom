@@ -385,6 +385,7 @@ public sealed class ReplayParserLog : IDisposable
             [new("IPCI"u8)] = ParseNetworkLegacyIDScramble,
             [new("IPCX"u8)] = ParseNetworkIDScramble,
             [new("IPCS"u8)] = ParseNetworkServerIPC,
+            [new("XEXT"u8)] = () => ReplayExt.Parse(this, new(_input.ReadUInt(false)), _input.ReadBytes()), // Boss Mod (Custom) records, see ReplayExt
             [new("RTT "u8)] = ParseNetworkRTT,
             [new("RPRE"u8)] = ParseReplayPresets,
             [new("RMOD"u8)] = ParseReplayModifiers,

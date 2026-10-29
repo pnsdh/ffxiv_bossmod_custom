@@ -351,6 +351,14 @@ static partial class LocKorean
         // BossMod/Framework/DtrConfig.cs
         ("Autorotation status indicator", "자동 로테이션 상태 표시기"),
 
+        // BossMod/Replay/ReplayManagementConfig.Custom.cs
+        ("Record ground and omen effects in replays", "리플레이에 바닥 이펙트와 전조 기록"),
+        ("Also record effects attached to enemies", "적에게 붙는 이펙트도 기록"),
+        ("On-hit and other effects attached to bosses and helpers. Effects of players, pets and chocobos are skipped.", "보스와 보이지 않는 보조 액터에 붙는 피격 이펙트 등입니다. 플레이어, 펫, 초코보의 이펙트는 빼고 기록합니다."),
+        ("Also record standalone effect objects", "독립 이펙트 객체도 기록"),
+        ("Effects that aren't omens and aren't attached to anyone, e.g. mechanic effects and background effects. Includes effects of players.", "전조도 아니고 누구에게 붙지도 않는 이펙트입니다. 기믹 연출과 배경 이펙트 등이 해당하고, 플레이어의 이펙트도 포함됩니다."),
+        ("Adds the static/ground effects and omens the game spawns (file, position, rotation, size) and a clock sync to recorded replays, for working out new fights.\nThese replays can't be opened by the original Boss Mod.", "게임이 띄우는 바닥 이펙트와 전조(파일, 위치, 회전, 크기)와 시계 동기 기록을 리플레이에 남깁니다. 새 전투의 기믹을 분석할 때 씁니다.\n이 리플레이는 원본 Boss Mod에서 열 수 없습니다."),
+
         // BossMod/Replay/ReplayManagementConfig.cs
         ("If this option is disabled, replays will contain your player's name, as well as the names of any other players you encounter. They will also contain the content IDs of you and your party members.", "이 옵션을 끄면 리플레이에 내 캐릭터 이름과 만난 다른 플레이어들의 이름이 담깁니다. 나와 파티원들의 콘텐츠 ID도 함께 담깁니다."),
 

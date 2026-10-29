@@ -126,6 +126,7 @@ internal sealed class TickService(
             amex.QueueManualActions();
             amex.FinishActionGather();
             hintExecutor.Execute(); // with cleared hints: drops any movement/turn request made before the pause
+            VfxRecorder.Suspend();
             return;
         }
 
@@ -134,6 +135,7 @@ internal sealed class TickService(
 
         Service.Camera.Update();
         wsSync.Update(_prevUpdateTime);
+        VfxRecorder.Flush(worldstateGlobal);
         bossmod.Update();
         PartyRolesWarning.Update(worldstateGlobal);
         zonemod.ActiveModule?.Update();
@@ -214,5 +216,6 @@ internal sealed class TickService(
         _wndBossmod.Dispose();
         _wndConfig.Dispose();
         PartyRolesWarning.Dispose();
+        VfxRecorder.Dispose();
     }
 }

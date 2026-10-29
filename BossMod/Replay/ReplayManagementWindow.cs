@@ -309,6 +309,7 @@ public class ReplayManagementWindow : UIWindow
         try
         {
             _recorder = new(_ws, _config.WorldLogFormat, true, parentDir, prefix + p, _config.Anonymize);
+            VfxRecorder.RequestClockSync();
             _recordingStart = DateTime.Now;
             _recordingName = prefix + p;
         }

@@ -1,7 +1,7 @@
 ﻿namespace BossMod;
 
 [ConfigDisplay(Name = "Replays", Order = 0, Group = "General")]
-public class ReplayManagementConfig : ConfigNode
+public partial class ReplayManagementConfig : ConfigNode
 {
     [PropertyDisplay("Show replay management UI")]
     public bool ShowUI = false;
