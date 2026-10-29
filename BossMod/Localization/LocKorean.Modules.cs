@@ -229,5 +229,9 @@ static partial class LocKorean
         // BossMod.Modules/Stormblood/Foray/EurekaFarm.cs
         ("Enable the prep module (and overlay)", "준비 모듈 (및 오버레이) 사용"),
         ("Only attack mobs that are already in combat", "이미 전투 중인 몹만 공격"),
+
+        // BossMod.Modules/Global/DeepDungeon/Config.cs (v7.5.7.12+)
+        ("Avoid known trap locations sourced from Palantir data. (Traps revealed by a Pomander of Sight will always be avoided.)", "Palantir 데이터의 알려진 함정 위치를 피합니다. (마토기: 사이트로로 드러난 함정은 항상 피합니다.)"),
+        ("Open chests", "보물상자 열기"),
     ];
 }

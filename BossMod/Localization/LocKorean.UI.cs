@@ -416,5 +416,10 @@ static partial class LocKorean
 
         // BossMod/Util/Overlays.cs
         ("Open settings", "설정 열기"),
+
+        // BossMod/Framework/DtrConfig.cs (occlusion)
+        ("Occlude in-world guide elements", "필드 표시 요소를 사물 뒤로 가리기"),
+        ("If enabled, shapes that BossMod draws in the game world, such as movement hints and deep dungeon trap indicators, will appear 'behind' other objects the same way that native AOE indicators do.", "켜면 이동 힌트나 딥던전 함정 표시처럼 BossMod가 게임 화면에 그리는 도형이, 게임 기본 장판 표시처럼 다른 사물 '뒤로' 가려져 보입니다."),
+        ("Occluded item transparency", "가려진 요소의 투명도"),
     ];
 }

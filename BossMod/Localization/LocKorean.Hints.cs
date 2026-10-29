@@ -1217,5 +1217,16 @@ static partial class LocKorean
         // BossMod.Ultimate/Stormblood/Ultimate/UWU/P1MistralSong.cs (new hints)
         ("GTFO from add!", "쫄에게서 떨어지세요!"),
         ("Intercept add!", "쫄을 가로막으세요!"),
+
+        // BossMod.Modules/Dawntrail/Dungeon, Raid, BossMod.Ultimate UCOB (v7.5.7.12+)
+        ("Turn into a ghost!", "유령으로 변하세요!"),
+        ("Turn into flesh!", "육체로 돌아가세요!"),
+        ("Step on the marked arrow!", "표시된 화살표를 밟으세요!"),
+        ("Stay put until the maze is gone!", "미로가 사라질 때까지 움직이지 마세요!"),
+        ("Go into a spotlight!", "조명 안으로 들어가세요!"),
+        ("Safe: {0}", "안전: {0}"),
+        ("Let's Pose will hit you!", "레츠 포즈!에 맞습니다!"),
+        ("Raidwide x{0}", "전체 공격 x{0}"),
+        ("P2HugNael mode: {0}", "P2HugNael 방식: {0}"),
     ];
 }
