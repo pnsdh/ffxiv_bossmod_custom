@@ -315,29 +315,33 @@ class P5Delta(BossModule module) : BossComponent(module)
 
         {
             // swivel cannon: everyone in the safe half; z = distance towards the safe side, x < 0 = towards omega
+            // spots = where a KR 09STOP static actually stood in 189 clean near/distant resolutions (2023 ACT logs, spread 0.1-0.5y per role);
+            // vs the diagram-measured spots this moves the two free blues apart symmetrically around the safe-side cardinal marker,
+            // which widens the weakest gap (near target <-> omega-side blue, 8y initial hit) from 9.0y to 9.9y
+            // (simulated with 0.5y position noise per player: 6.9% -> 0.5% chain failures)
             var safeDirZ = _swivelCannonSafeDir.Dot(_eyeDir) > 0 ? -1 : 1;
             if (p.IsLocal)
             {
                 if (p.PairAssignment == PairAssignment.Outer)
-                    yield return TransformRelNorth(9, 16.7f * safeDirZ); // both outer greens meet at the edge, 2 cells from the final-side number marker away from the cannon, to break the tether
+                    yield return TransformRelNorth(10.1f, 16 * safeDirZ); // both outer greens meet at the edge, 2 cells from the final-side number marker away from the cannon, to break the tether
                 else if (p.SideAssignment == SideAssignment.South)
-                    yield return TransformRelNorth(-18.9f, 1.8f * safeDirZ); // inner green from omega's left rotates CW to omega, as close to the safe side as possible
+                    yield return TransformRelNorth(-18.8f, 1.8f * safeDirZ); // inner green from omega's left rotates CW to omega, as close to the safe side as possible
                 else
-                    yield return TransformRelNorth(15.4f, 11.1f * safeDirZ); // inner green from omega's right rotates CW past final omega, at the edge 2.5 cells from the number marker towards the cannon
+                    yield return TransformRelNorth(15.9f, 10.3f * safeDirZ); // inner green from omega's right rotates CW past final omega, at the edge 2.5 cells from the number marker towards the cannon
             }
             else if (_distantWorld == Raid[slot])
             {
-                yield return TransformRelNorth(-1.4f, 6.2f * safeDirZ); // as close to the center as possible
+                yield return TransformRelNorth(-0.8f, 6 * safeDirZ); // as close to the center as possible
             }
             else if (_nearWorld == Raid[slot])
             {
-                yield return TransformRelNorth(-12.6f, 14.2f * safeDirZ); // at the edge, 1 cell from the omega-side number marker away from the cannon
+                yield return TransformRelNorth(-12.3f, 14.8f * safeDirZ); // at the edge, 1 cell from the omega-side number marker away from the cannon
             }
             else
             {
                 // either of the two spots next to the safe-side cardinal marker
-                yield return TransformRelNorth(-4.6f, 18.4f * safeDirZ);
-                yield return TransformRelNorth(2, 18.9f * safeDirZ);
+                yield return TransformRelNorth(-3.3f, 18.9f * safeDirZ);
+                yield return TransformRelNorth(3.3f, 18.9f * safeDirZ);
             }
         }
     }
