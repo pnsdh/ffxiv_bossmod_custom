@@ -175,13 +175,16 @@ class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackS
         if (_ndw == null || _boss == null)
             yield break;
 
+        // near 9.5y / distant 9y (same radii as the blaster set, so both omega near/distant sets show the same spots): each target's 8y initial hit
+        // otherwise reaches within ~1.5y of the edge player on the same line; 2023 ACT logs (78 clean resolutions) + simulation with 0.5y noise:
+        // near 91% -> 94%, distant 89% -> 94% chain success
         if (actor == _ndw.NearWorld)
         {
-            yield return Module.Center + 10 * (_boss.Rotation - _bossAngle).ToDirection();
+            yield return Module.Center + 9.5f * (_boss.Rotation - _bossAngle).ToDirection();
         }
         else if (actor == _ndw.DistantWorld)
         {
-            yield return Module.Center + 10 * (_boss.Rotation + 2.05f * _bossAngle).ToDirection();
+            yield return Module.Center + 9 * (_boss.Rotation + 2.05f * _bossAngle).ToDirection();
         }
         else if (Service.Config.Get<TOPConfig>().P5ShowCandidateSpots)
         {
@@ -227,15 +230,16 @@ class P5OmegaBlaster : Components.BaitAwayTethers
             yield break;
 
         var toBoss = (CurrentBaits[0].Source.Position - Module.Center).Normalized();
+        // near 9.5y / distant 9y, same as the monitor set (2023 ACT logs, 67 clean resolutions + 0.5y-noise simulation: near 90% -> 94%, distant 89% -> 93%)
         if (actor == _ndw.NearWorld)
         {
-            yield return Module.Center - 10 * toBoss;
+            yield return Module.Center - 9.5f * toBoss;
         }
         else if (actor == _ndw.DistantWorld)
         {
             // TODO: select one of the spots...
-            yield return Module.Center + 10 * toBoss.OrthoL();
-            yield return Module.Center + 10 * toBoss.OrthoR();
+            yield return Module.Center + 9 * toBoss.OrthoL();
+            yield return Module.Center + 9 * toBoss.OrthoR();
         }
         else if (CurrentBaits.Any(b => b.Target == actor))
         {

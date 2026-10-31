@@ -583,7 +583,10 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
 
         if (actor == DistantWorld)
         {
-            yield return spot(south + 180.Degrees(), 10);
+            // 9.5y rather than the diagram's 10y: the bind-2 player stands on the same line at the edge, so the 8y initial hit had ~1.4y of slack;
+            // 2023 ACT logs (105 clean sigma resolutions) + simulation with 0.5y noise per player: 85% -> 88% chain success.
+            // the rear lasers (12y wide) clear this spot after ~39 degrees of rotation instead of ~37 and are long gone by the first hit
+            yield return spot(south + 180.Degrees(), 9.5f);
             yield break;
         }
         if (actor == NearWorld)
