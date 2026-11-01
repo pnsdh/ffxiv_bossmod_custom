@@ -298,11 +298,12 @@ class P5Delta(BossModule module) : BossComponent(module)
         {
             if (p.IsLocal)
             {
-                // monitor soak spots, as far out as possible (1y from the arena edge)
+                // monitor soak spots: where a KR 09STOP static actually stood (2023 ACT logs, 217 clean resolutions, median) - farther out is better,
+                // but the arm lasers sweep the edge, so they can't go all the way out
                 if (p.PairAssignment == PairAssignment.Inner)
-                    yield return TransformRelNorth(-6.1f, 18 * dirZ);
+                    yield return TransformRelNorth(-4.5f, 15.6f * dirZ);
                 else
-                    yield return TransformRelNorth(11.5f, 15.1f * dirZ);
+                    yield return TransformRelNorth(10.0f, 12.7f * dirZ);
             }
             else
             {

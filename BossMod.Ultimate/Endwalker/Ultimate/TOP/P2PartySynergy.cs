@@ -165,6 +165,7 @@ class P2PartySynergyOptimizedFire : Components.UniformStackSpread
 
 class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(module, AID.OpticalLaser)
 {
+    private readonly TOPConfig _config = Service.Config.Get<TOPConfig>();
     private readonly P2PartySynergy? _synergy = module.FindComponent<P2PartySynergy>();
     private readonly Actor? _source = module.Enemies(OID.OpticalUnit).FirstOrDefault();
     private DateTime _activation;
@@ -202,8 +203,13 @@ class P2PartySynergyOpticalLaser(BossModule module) : Components.GenericAOEs(mod
         var eyeOffset = _source.Position - Module.Center;
         var toRelNorth = eyeOffset.Normalized();
         var order = _synergy.GetNorthSouthOrder(ps);
-        var centerOffset = _synergy.ActiveGlitch == P2PartySynergy.Glitch.Remote && order is 2 or 3 ? 17.5f : 11;
-        return 10 * (2.5f - order) * toRelNorth + centerOffset * (ps.Group == 1 ? toRelNorth.OrthoL() : toRelNorth.OrthoR());
+        var remoteMid = _synergy.ActiveGlitch == P2PartySynergy.Glitch.Remote && order is 2 or 3;
+        // 09STOP, remote glitch, orders 2/3: the four players of a side evenly spaced on the arc (radius ~18.6y) between orders 1 and 4 at (+-15, 11),
+        // so every neighbour gap is 11.44y instead of 10y between orders 2 and 3
+        var spread09STOP = remoteMid && _config.P2PartySynergyMarkerOrder09STOP;
+        var northOffset = spread09STOP ? (order == 2 ? 5.72f : -5.72f) : 10 * (2.5f - order);
+        var centerOffset = spread09STOP ? 17.7f : remoteMid ? 17.5f : 11;
+        return northOffset * toRelNorth + centerOffset * (ps.Group == 1 ? toRelNorth.OrthoL() : toRelNorth.OrthoR());
     }
 }
 

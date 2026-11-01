@@ -82,7 +82,7 @@ class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
         if (grabThisTether && NumTethersDone == NumTowersDone)
         {
             // show hint for tether position
-            var spot = GetTetherDropSpot(ps.Group);
+            var spot = GetTetherDropSpot(ps.Group, pc);
             if (spot != null)
                 Arena.AddCircle(spot.Value, 1, ArenaColor.Safe);
         }
@@ -154,7 +154,7 @@ class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
         return group == 1 ? t1 : t2;
     }
 
-    private WPos? GetTetherDropSpot(int group)
+    private WPos? GetTetherDropSpot(int group, Actor player)
     {
         if (group == 0 || _towers.Count < NumTowersDone + 2)
             return null;
@@ -163,6 +163,9 @@ class P1ProgramLoop(BossModule module) : P1CommonAssignments(module)
         safeSpots.Clear(ClassifyTower(_towers[NumTowersDone]));
         safeSpots.Clear(ClassifyTower(_towers[NumTowersDone + 1]));
         var spot = group == 1 ? safeSpots.LowestSetBit() : safeSpots.HighestSetBit();
-        return Module.Center + 18 * (180.Degrees() - 90.Degrees() * spot).ToDirection();
+        // tanks/melee at 15y, the farthest they can still hit the boss from; ranged at 18y (the farther the safer)
+        // 2023 KR ACT logs: melee 15.0y (14.5-15.4), tanks 14.6y, ranged 16.2y (13.7-18.8) median
+        var radius = player.Role is Role.Tank or Role.Melee ? 15 : 18;
+        return Module.Center + radius * (180.Degrees() - 90.Degrees() * spot).ToDirection();
     }
 }

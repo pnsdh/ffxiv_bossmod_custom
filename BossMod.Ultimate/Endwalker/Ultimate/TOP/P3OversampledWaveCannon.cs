@@ -224,11 +224,12 @@ class P3OversampledWaveCannon(BossModule module) : BossComponent(module)
                 yield return (aoe.origin.Position, aoe.origin.Rotation + aoe.offset, aoe.order == order, isMonitor && aoe.order == _playerOrder[slot]);
     }
 
-    // 09STOP spots for boss monitor on the left (west cleave), mirrored for the right: the 09STOP diagram with N1/N4/N5 hugging the boss cleave line from outside
-    // and N2 from inside, which lets N3 move ~3y closer to the center; N1/N5 1y from the arena edge; everyone is at least 8.5y apart (hit players explode
-    // in 7y circles; the diagram has M1-M2 at 7.8y) and monitors facing exactly E/N/S keep +-11..15 degrees of tolerance (diagram: +-8..11)
-    private static readonly (float x, float z)[] _monitorSpots09STOP = [(8, -12), (16, -8.5f), (12.5f, 5.5f)];
-    private static readonly (float x, float z)[] _otherSpots09STOP = [(1, -19), (-1.5f, -1), (-11, -0.5f), (1, 10), (1, 19)];
+    // 09STOP spots for boss monitor on the left (west cleave), mirrored for the right; optimized layout: every pair of players at least 9y apart
+    // (M1/M2 overlapping was a frequent death), M1-M3 within 15.5y of the center for melee uptime (M2 at 15.4y), N2/N3 more than 2.5y inside the boss half;
+    // each monitor can turn 12.6 degrees off its aim and still hit the same two players (previous layout 12.7 degrees, measured KR static 10.3 degrees);
+    // only N3 differs from the measured spot by more than 1y (2.1y further in)
+    private static readonly (float x, float z)[] _monitorSpots09STOP = [(8.1f, -12.7f), (14.2f, -6.0f), (12.7f, 5.7f)];
+    private static readonly (float x, float z)[] _otherSpots09STOP = [(1.1f, -19.1f), (-3.7f, 0.2f), (-12.7f, 0.0f), (1.3f, 9.5f), (0.9f, 18.9f)];
     private const float _explosionRadius = 7;
 
     private WPos Spot09STOP(bool monitor, int order)
