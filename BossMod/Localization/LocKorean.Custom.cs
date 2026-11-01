@@ -63,6 +63,14 @@ static partial class LocKorean
         ("09STOP: line up between the arms, spread by marker count, towers by the 09STOP floor marker macros.", "09STOP: 아카이브 암 사이 정렬, 마커 수에 따른 산개, 09STOP 바닥징 매크로대로 탑 배정."),
         ("P5: show candidate spots", "P5: 후보 자리 표시"),
         ("For players whose exact spot isn't known yet, e.g. Hello World baiters whose roles depend on head markers placed by the party.\nOnly affects cases with 3 or more candidate spots; up to 2 spots are always shown.", "정확한 자리를 알 수 없는 사람에게 갈 수 있는 자리를 모두 표시합니다. 예: 파티가 찍는 머리 징에 따라 역할이 정해지는 헬로월드 유도자.\n후보가 3곳 이상인 경우에만 해당하며, 2곳 이하는 항상 표시합니다."),
+        ("P5 Sigma/Omega: show the spot of your head marker", "P5 시그마/오메가: 머리징에 맞는 자리 표시"),
+        ("Hello World baiters get the spot of the head marker the party placed on them; players without one get only the spots nobody else's marker takes.\nSigma (09STOP layout): bind 1/2/3 = NW/N/NE edge with omega F at 12, attack 1 = 6 o'clock, attack 2 = past the arm, attack 3 = before the arm.\nOmega: attack 1/4 = distant baiters (A/C side, then 9/3 o'clock with the omega at 12), attack 2/3 = near baiters (see the numbering option below), bind 1/2 = monitor soakers (A/C side).\nOnly markers placed on party members during the mechanic count; if they don't fit (other markers, a marker for a spot you can't take), spots are shown as without markers.",
+         "헬로월드 유도자에게 파티가 찍어준 머리징의 자리를 표시합니다. 징이 없는 사람에게는 다른 사람의 징이 차지하지 않은 자리만 표시합니다.\n시그마(09STOP 배치): 오메가 F를 12시로 두고 속박 1/2/3 = 북서/북/북동 외곽, 공격 1 = 6시, 공격 2 = 팔 너머, 공격 3 = 팔 앞.\n오메가: 공격 1/4 = 원거리 유도(A/C쪽, 블래스터 때는 오메가를 12시로 두고 9/3시), 공격 2/3 = 근거리 유도(아래 번호 방식 옵션 참고), 속박 1/2 = 모니터 유도(A/C쪽).\n해당 기믹 중에 파티원에게 찍힌 징만 인식하며, 징이 공략과 맞지 않으면(다른 종류의 징, 내가 갈 수 없는 자리의 징) 징이 없을 때처럼 표시합니다."),
+        ("P5 Omega: head marker numbering", "P5 오메가: 머리징 번호 방식"),
+        ("The 09STOP sheet (and Lemegeton in order) uses attack 1/4 for the distant and 2/3 for the near baiters; other parties use attack 1/2 for the distant baiters and 3/4 (or nothing) for the near ones.\nAuto assumes the sheet; with only attack 1/2 placed, attack 2 gets both of its possible spots (near A side / 9 o'clock side and second distant).", "09STOP 공략 문서(와 순서대로 찍는 레메게톤)는 원거리 유도에 공격 1/4, 근거리 유도에 공격 2/3을 씁니다. 원거리 유도에 공격 1/2, 근거리 유도에 공격 3/4를 쓰거나 근거리는 찍지 않는 파티도 있습니다.\n자동은 공략 문서 방식으로 보고, 공격 1/2만 찍혀 있으면 공격 2에게 가능한 두 자리(근거리 A측/9시측과 두 번째 원거리)를 모두 보여줍니다."),
+        ("Auto: attack 1/4 distant; with only attack 1/2 placed, attack 2 gets both possible spots", "자동: 공격 1/4 원거리, 공격 1/2만 있으면 공격 2에게 가능한 두 자리 표시"),
+        ("Attack 1/4 distant, 2/3 near (09STOP sheet)", "공격 1/4 원거리, 2/3 근거리 (09STOP 공략 문서)"),
+        ("Attack 1/2 distant, 3/4 near", "공격 1/2 원거리, 3/4 근거리"),
 
         // BossMod.Ultimate/Endwalker/Ultimate/TOP/TOPConfig.09STOP.cs
         ("Apply 09STOP (Korean strat) to all TOP options", "TOP 전체를 09STOP(한국 공략)으로 설정"),

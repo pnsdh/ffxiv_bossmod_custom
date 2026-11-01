@@ -119,6 +119,7 @@ class P5OmegaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
 class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackSpread(module, 0, 7)
 {
     private readonly P5OmegaNearDistantWorld? _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
+    private readonly P5HeadMarkers? _marks = module.FindComponent<P5HeadMarkers>();
     private Actor? _boss;
     private Angle _bossAngle;
 
@@ -186,15 +187,21 @@ class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackS
         {
             yield return Module.Center + 9 * (_boss.Rotation + 2.05f * _bossAngle).ToDirection();
         }
-        else if (Service.Config.Get<TOPConfig>().P5ShowCandidateSpots)
+        else
         {
-            // TODO: assignments...
-            yield return Module.Center + 19 * (_boss.Rotation - 0.05f * _bossAngle).ToDirection(); // '1' - first distant
-            yield return Module.Center + 19 * (_boss.Rotation - 0.95f * _bossAngle).ToDirection(); // '2' - first near
-            yield return Module.Center + 19 * (_boss.Rotation - 1.05f * _bossAngle).ToDirection(); // '3' - second near
-            yield return Module.Center + 19 * (_boss.Rotation - 1.95f * _bossAngle).ToDirection(); // '4' - second distant
-            yield return Module.Center + 15 * (_boss.Rotation + 0.50f * _bossAngle).ToDirection(); // first soaker
-            yield return Module.Center + 15 * (_boss.Rotation + 1.50f * _bossAngle).ToDirection(); // second soaker
+            // the boss always faces north (waymark A) here, so '1'/'2' and the first soaker are the A side, '3'/'4' and the second soaker the C side
+            var baitSigns = P5HeadMarkers.OmegaBaitSigns(_marks, 0);
+            List<(WPos, Sign[])> spots =
+            [
+                (Module.Center + 19 * (_boss.Rotation - 0.05f * _bossAngle).ToDirection(), baitSigns[0]), // '1' - first distant
+                (Module.Center + 19 * (_boss.Rotation - 0.95f * _bossAngle).ToDirection(), baitSigns[1]), // '2' - first near
+                (Module.Center + 19 * (_boss.Rotation - 1.05f * _bossAngle).ToDirection(), baitSigns[2]), // '3' - second near
+                (Module.Center + 19 * (_boss.Rotation - 1.95f * _bossAngle).ToDirection(), baitSigns[3]), // '4' - second distant
+                (Module.Center + 15 * (_boss.Rotation + 0.50f * _bossAngle).ToDirection(), [Sign.Bind1]), // first soaker
+                (Module.Center + 15 * (_boss.Rotation + 1.50f * _bossAngle).ToDirection(), [Sign.Bind2]), // second soaker
+            ];
+            foreach (var p in P5HeadMarkers.Spots(_marks, actor, 0, spots, P5HeadMarkers.OmegaSigns, _ndw.NearWorld, _ndw.DistantWorld))
+                yield return p;
         }
     }
 }
@@ -203,12 +210,14 @@ class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackS
 class P5OmegaBlaster : Components.BaitAwayTethers
 {
     private readonly P5OmegaNearDistantWorld? _ndw;
+    private readonly P5HeadMarkers? _marks;
 
     public P5OmegaBlaster(BossModule module) : base(module, new AOEShapeCircle(15), (uint)TetherID.Blaster, AID.OmegaBlasterAOE)
     {
         CenterAtTarget = true;
         ForbiddenPlayers = new(0xFF);
         _ndw = module.FindComponent<P5OmegaNearDistantWorld>();
+        _marks = module.FindComponent<P5HeadMarkers>();
     }
 
     public override void DrawArenaForeground(int pcSlot, Actor pc)
@@ -247,13 +256,19 @@ class P5OmegaBlaster : Components.BaitAwayTethers
             yield return p + 10 * toBoss.OrthoL();
             yield return p + 10 * toBoss.OrthoR();
         }
-        else if (Service.Config.Get<TOPConfig>().P5ShowCandidateSpots)
+        else
         {
-            // TODO: assignments...
-            yield return Module.Center + 19 * toBoss.OrthoL(); // '1' - first distant
-            yield return Module.Center - 18 * toBoss + 5 * toBoss.OrthoL(); // '2' - first near
-            yield return Module.Center - 18 * toBoss + 5 * toBoss.OrthoR(); // '3' - second near
-            yield return Module.Center + 19 * toBoss.OrthoR(); // '4' - second distant
+            // with the omega at 12 o'clock: '1' at 9, '4' at 3, '2'/'3' at 6 shifted towards 9/3
+            var baitSigns = P5HeadMarkers.OmegaBaitSigns(_marks, 1);
+            List<(WPos, Sign[])> spots =
+            [
+                (Module.Center + 19 * toBoss.OrthoL(), baitSigns[0]), // '1' - first distant
+                (Module.Center - 18 * toBoss + 5 * toBoss.OrthoL(), baitSigns[1]), // '2' - first near
+                (Module.Center - 18 * toBoss + 5 * toBoss.OrthoR(), baitSigns[2]), // '3' - second near
+                (Module.Center + 19 * toBoss.OrthoR(), baitSigns[3]), // '4' - second distant
+            ];
+            foreach (var p in P5HeadMarkers.Spots(_marks, actor, 1, spots, P5HeadMarkers.OmegaSigns, _ndw.NearWorld, _ndw.DistantWorld))
+                yield return p;
         }
     }
 }

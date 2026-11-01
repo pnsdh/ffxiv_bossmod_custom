@@ -113,5 +113,23 @@ public partial class TOPConfig() : ConfigNode()
     public bool P5Sigma09STOP = true;
 
     [PropertyDisplay("P5: show candidate spots", tooltip: "For players whose exact spot isn't known yet, e.g. Hello World baiters whose roles depend on head markers placed by the party.\nOnly affects cases with 3 or more candidate spots; up to 2 spots are always shown.")]
-    public bool P5ShowCandidateSpots = false;
+    public bool P5ShowCandidateSpots = true;
+
+    [PropertyDisplay("P5 Sigma/Omega: show the spot of your head marker", tooltip: "Hello World baiters get the spot of the head marker the party placed on them; players without one get only the spots nobody else's marker takes.\nSigma (09STOP layout): bind 1/2/3 = NW/N/NE edge with omega F at 12, attack 1 = 6 o'clock, attack 2 = past the arm, attack 3 = before the arm.\nOmega: attack 1/4 = distant baiters (A/C side, then 9/3 o'clock with the omega at 12), attack 2/3 = near baiters (see the numbering option below), bind 1/2 = monitor soakers (A/C side).\nOnly markers placed on party members during the mechanic count; if they don't fit (other markers, a marker for a spot you can't take), spots are shown as without markers.")]
+    public bool P5FollowHeadMarkers = true;
+
+    public enum P5OmegaMarkers
+    {
+        [PropertyDisplay("Auto: attack 1/4 distant; with only attack 1/2 placed, attack 2 gets both possible spots")]
+        Auto,
+
+        [PropertyDisplay("Attack 1/4 distant, 2/3 near (09STOP sheet)")]
+        Attack1To4,
+
+        [PropertyDisplay("Attack 1/2 distant, 3/4 near")]
+        Distant12,
+    }
+
+    [PropertyDisplay("P5 Omega: head marker numbering", tooltip: "The 09STOP sheet (and Lemegeton in order) uses attack 1/4 for the distant and 2/3 for the near baiters; other parties use attack 1/2 for the distant baiters and 3/4 (or nothing) for the near ones.\nAuto assumes the sheet; with only attack 1/2 placed, attack 2 gets both of its possible spots (near A side / 9 o'clock side and second distant).")]
+    public P5OmegaMarkers P5OmegaMarkerNumbering = P5OmegaMarkers.Auto;
 }

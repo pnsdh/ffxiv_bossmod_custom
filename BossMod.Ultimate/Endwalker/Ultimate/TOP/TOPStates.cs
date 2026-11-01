@@ -400,6 +400,7 @@ class TOPStates : StateMachineBuilder
             .SetHint(StateMachine.StateHint.Raidwide);
         ActorTargetable(id + 0x10, _module.BossP5, false, 3.1f, "Boss disappears")
             .ActivateOnEnter<P5Sigma>() // icons/tethers/statuses appear right as boss disappears
+            .ActivateOnEnter<P5HeadMarkers>()
             .SetHint(StateMachine.StateHint.DowntimeStart);
 
         ComponentCondition<P5SigmaWaveCannon>(id + 0x20, 10.3f, comp => comp.CurrentBaits.Count > 0)
@@ -434,6 +435,7 @@ class TOPStates : StateMachineBuilder
         ComponentCondition<P5SigmaNearDistantWorld>(id + 0x142, 1.0f, comp => comp.NumNearJumpsDone > 1, "Near/far 2");
         ComponentCondition<P5SigmaNearDistantWorld>(id + 0x143, 1.0f, comp => comp.NumNearJumpsDone > 2, "Near/far 3")
             .DeactivateOnExit<P5SigmaNearDistantWorld>()
+            .DeactivateOnExit<P5HeadMarkers>()
             .DeactivateOnExit<P5SigmaHyperPulse>(); // note: this resolves soon after first near/far
 
         ActorTargetable(id + 0x150, _module.BossP5, true, 2.6f, "Boss reappears")
@@ -445,7 +447,8 @@ class TOPStates : StateMachineBuilder
         ActorCast(id, _module.BossP5, AID.RunMiOmegaVersion, delay, 5, true, "Trio 3 raidwide")
             .SetHint(StateMachine.StateHint.Raidwide);
         ComponentCondition<P5OmegaNearDistantWorld>(id + 0x10, 3.1f, comp => comp.HaveDebuffs)
-            .ActivateOnEnter<P5OmegaNearDistantWorld>();
+            .ActivateOnEnter<P5OmegaNearDistantWorld>()
+            .ActivateOnEnter<P5HeadMarkers>();
         ComponentCondition<P5OmegaDoubleAOEs>(id + 0x20, 2.1f, comp => comp.AOEs.Count > 0)
             .ActivateOnEnter<P5OmegaDoubleAOEs>()
             .ActivateOnEnter<P5OmegaDiffuseWaveCannon>();
@@ -473,7 +476,8 @@ class TOPStates : StateMachineBuilder
         ComponentCondition<P5OmegaNearDistantWorld>(id + 0x220, 1.7f, comp => comp.NumNearJumpsDone > 0, "Near/far 4");
         ComponentCondition<P5OmegaNearDistantWorld>(id + 0x221, 1.0f, comp => comp.NumNearJumpsDone > 1, "Near/far 5");
         ComponentCondition<P5OmegaNearDistantWorld>(id + 0x222, 1.0f, comp => comp.NumNearJumpsDone > 2, "Near/far 6")
-            .DeactivateOnExit<P5OmegaNearDistantWorld>();
+            .DeactivateOnExit<P5OmegaNearDistantWorld>()
+            .DeactivateOnExit<P5HeadMarkers>();
 
         ActorTargetable(id + 0x300, _module.BossP5, true, 2.3f, "Boss reappears")
             .SetHint(StateMachine.StateHint.DowntimeEnd);
