@@ -358,5 +358,13 @@ static partial class LocKorean
         ("P1: players assigned to soak Plummet (for LB)", "P1: 곤두박질 맞을 플레이어 (LB용)"),
         // BossMod.Ultimate/Stormblood/Ultimate/UWU/UWUConfig.cs
         ("Titan gaols priorities (close < far)", "타이탄 화강암 감옥 우선순위 (가까움 < 멂)"),
+        ("Beyond Limits puddle assignments", "한계 돌파 장판 배정"),
+        ("Garuda", "가루다"),
+        ("Ifrit", "이프리트"),
+        ("Titan", "타이탄"),
+        ("H1 -> R2 -> M1", "H1 -> R2 -> M1"),
+        ("P1: Thermal Low cleanse order", "P1: 저기압 해제 순서"),
+        ("M1 -> M2 -> OT", "M1 -> M2 -> OT"),
+        ("P1: Show hints for fast awaken (during Friction)", "P1: 빠른 각성 힌트 표시 (바람의 칼날 중)"),
     ];
 }

@@ -22,8 +22,8 @@ foreach ($p in 'BossMod.Autorotation', 'BossMod.Modules', 'BossMod.Ultimate') {
     if ($LASTEXITCODE -ne 0) { throw "Restore of $p failed" }
 }
 # same versioning as release-custom.yml (<upstream major.minor.build>.<commit count>), so local builds don't look older than releases
-[xml]$csproj = Get-Content (Join-Path $root 'BossMod\BossMod.csproj')
-$base = ($csproj.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1).Split('.')
+[xml]$targets = Get-Content (Join-Path $root 'Common.targets')
+$base = ($targets.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1).Split('.')
 $version = "$($base[0]).$($base[1]).$($base[2]).$(git -C $root rev-list --count HEAD)"
 Write-Host "Version: $version"
 dotnet publish (Join-Path $root 'BossMod\BossMod.csproj') -c Release -p:LocalCS=false -p:Version=$version

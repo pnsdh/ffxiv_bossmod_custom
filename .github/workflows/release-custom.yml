@@ -2,7 +2,7 @@ name: Build & Release (Custom)
 
 # Builds master and publishes a GitHub Release (latest.zip + BossMod.json) that
 # pnsdh/DalamudPlugins' pluginmaster picks up.
-# Version = <first three parts of upstream csproj Version>.<commit count>, so every new
+# Version = <first three parts of upstream Version in Common.targets>.<commit count>, so every new
 # master commit (own push or upstream merge) gets a strictly increasing version.
 on:
   push:
@@ -31,9 +31,9 @@ jobs:
         id: ver
         shell: pwsh
         run: |
-          [xml]$csproj = Get-Content "BossMod/BossMod.csproj"
-          $base = ($csproj.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1)
-          if (-not $base) { throw "No <Version> found in csproj" }
+          [xml]$targets = Get-Content "Common.targets"
+          $base = ($targets.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1)
+          if (-not $base) { throw "No <Version> found in Common.targets" }
           $parts = $base.Split('.')
           $count = git rev-list --count HEAD
           $version = "$($parts[0]).$($parts[1]).$($parts[2]).$count"

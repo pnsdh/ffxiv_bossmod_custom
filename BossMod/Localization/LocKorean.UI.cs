@@ -421,5 +421,12 @@ static partial class LocKorean
         ("Occlude in-world guide elements", "필드 표시 요소를 사물 뒤로 가리기"),
         ("If enabled, shapes that BossMod draws in the game world, such as movement hints and deep dungeon trap indicators, will appear 'behind' other objects the same way that native AOE indicators do.", "켜면 이동 힌트나 딥던전 함정 표시처럼 BossMod가 게임 화면에 그리는 도형이, 게임 기본 장판 표시처럼 다른 사물 '뒤로' 가려져 보입니다."),
         ("Occluded item transparency", "가려진 요소의 투명도"),
+
+        // BossMod/Framework/DtrConfig.cs (melee range ring, v7.5.7.17+)
+        ("Target melee range indicator", "대상 근접 사거리 표시"),
+        ("Highlight current slice", "현재 구역 강조"),
+        ("Ring color: rear", "고리 색상: 후방"),
+        ("Ring color: flank", "고리 색상: 측면"),
+        ("Ring color: front", "고리 색상: 전방"),
     ];
 }
