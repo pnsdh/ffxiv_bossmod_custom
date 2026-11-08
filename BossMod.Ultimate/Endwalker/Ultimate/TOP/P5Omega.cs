@@ -185,7 +185,9 @@ class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackS
         }
         else if (actor == _ndw.DistantWorld)
         {
+            // either end of the north-south line works (2023 ACT logs: 55 north, 48 south); both stay just outside the monitor half, in line with the distant baiters
             yield return Module.Center + 9 * (_boss.Rotation + 2.05f * _bossAngle).ToDirection();
+            yield return Module.Center + 9 * (_boss.Rotation - 0.05f * _bossAngle).ToDirection();
         }
         else
         {
@@ -194,8 +196,9 @@ class P5OmegaOversampledWaveCannon(BossModule module) : Components.UniformStackS
             List<(WPos, Sign[])> spots =
             [
                 (Module.Center + 19 * (_boss.Rotation - 0.05f * _bossAngle).ToDirection(), baitSigns[0]), // '1' - first distant
-                (Module.Center + 19 * (_boss.Rotation - 0.95f * _bossAngle).ToDirection(), baitSigns[1]), // '2' - first near
-                (Module.Center + 19 * (_boss.Rotation - 1.05f * _bossAngle).ToDirection(), baitSigns[2]), // '3' - second near
+                // near baiters where people actually stand (2023 ACT logs, 82 pulls: 3.4y off the axis, 18.9y along it); the jumps are 4y circles, so they have to be further apart than that
+                (Module.Center + 19.2f * (_boss.Rotation - 0.887f * _bossAngle).ToDirection(), baitSigns[1]), // '2' - first near
+                (Module.Center + 19.2f * (_boss.Rotation - 1.113f * _bossAngle).ToDirection(), baitSigns[2]), // '3' - second near
                 (Module.Center + 19 * (_boss.Rotation - 1.95f * _bossAngle).ToDirection(), baitSigns[3]), // '4' - second distant
                 (Module.Center + 15 * (_boss.Rotation + 0.50f * _bossAngle).ToDirection(), [Sign.Bind1]), // first soaker
                 (Module.Center + 15 * (_boss.Rotation + 1.50f * _bossAngle).ToDirection(), [Sign.Bind2]), // second soaker
@@ -263,8 +266,9 @@ class P5OmegaBlaster : Components.BaitAwayTethers
             List<(WPos, Sign[])> spots =
             [
                 (Module.Center + 19 * toBoss.OrthoL(), baitSigns[0]), // '1' - first distant
-                (Module.Center - 18 * toBoss + 5 * toBoss.OrthoL(), baitSigns[1]), // '2' - first near
-                (Module.Center - 18 * toBoss + 5 * toBoss.OrthoR(), baitSigns[2]), // '3' - second near
+                // near baiters where people actually stand (2023 ACT logs, 70 pulls), same as the monitor set
+                (Module.Center - 18.9f * toBoss + 3.4f * toBoss.OrthoL(), baitSigns[1]), // '2' - first near
+                (Module.Center - 18.9f * toBoss + 3.4f * toBoss.OrthoR(), baitSigns[2]), // '3' - second near
                 (Module.Center + 19 * toBoss.OrthoR(), baitSigns[3]), // '4' - second distant
             ];
             foreach (var p in P5HeadMarkers.Spots(_marks, actor, 1, spots, P5HeadMarkers.OmegaSigns, _ndw.NearWorld, _ndw.DistantWorld))

@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace BossMod.Endwalker.Ultimate.TOP;
 
-// 09STOP: the Korean server strat; it's also the default for every option that has a 09STOP choice
+// 09STOP: the Korean server strat; it's also the default for every option that has a 09STOP choice, except the P6 wave cannon spots (calculated, not tried in a real fight yet)
 public partial class TOPConfig
 {
     // global priority H1 > T1 > T2 > D1 > D2 > D3 > D4 > H2 (indexed by MT, OT, H1, H2, M1, M2, R1, R2; higher value keeps G1)
@@ -62,5 +62,8 @@ public partial class TOPConfig
 
         // P5 Sigma: 09STOP line up and spreads (see P5Sigma)
         P5Sigma09STOP = true;
+
+        // P6 Wave Cannon: 09STOP spots (see P6WaveCannonSpots)
+        P6WaveCannon09STOP = true;
     }
 }

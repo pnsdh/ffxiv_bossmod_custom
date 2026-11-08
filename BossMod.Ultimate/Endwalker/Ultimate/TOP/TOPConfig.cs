@@ -132,4 +132,8 @@ public partial class TOPConfig() : ConfigNode()
 
     [PropertyDisplay("P5 Omega: head marker numbering", tooltip: "The 09STOP sheet (and Lemegeton in order) uses attack 1/4 for the distant and 2/3 for the near baiters; other parties use attack 1/2 for the distant baiters and 3/4 (or nothing) for the near ones.\nAuto assumes the sheet; with only attack 1/2 placed, attack 2 gets both of its possible spots (near A side / 9 o'clock side and second distant).")]
     public P5OmegaMarkers P5OmegaMarkerNumbering = P5OmegaMarkers.Auto;
+
+    [PropertyDisplay("P6 Wave Cannon: layout", tooltip: "09STOP: shows your spot for the proteans and the stack of the first wave cannon, and for the two protean sets of the second one (during the exasquares).\nThe second one is shown in another color until the explosion before it has passed.\nRequires party roles. The spots of the second wave cannon are calculated and haven't been tried in a real fight yet.")]
+    [PropertyCombo("Off", "09STOP")]
+    public bool P6WaveCannon09STOP = false;
 }

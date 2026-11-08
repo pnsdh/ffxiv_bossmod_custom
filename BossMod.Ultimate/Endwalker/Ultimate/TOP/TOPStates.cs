@@ -534,20 +534,23 @@ class TOPStates : StateMachineBuilder
             .DeactivateOnExit<P6WaveCannonPuddle>()
             .DeactivateOnExit<P6WaveCannonExaflare>(); // these resolve just before cast start
         ComponentCondition<P6WaveCannonProteans>(id + 0x101, 3, comp => comp.NumCasts > 0, "Proteans 1")
-            .ActivateOnEnter<P6WaveCannonProteans>();
+            .ActivateOnEnter<P6WaveCannonProteans>()
+            .ActivateOnEnter<P6WaveCannonSpots1>();
         ComponentCondition<P6WaveCannonProteans>(id + 0x102, 2, comp => comp.NumCasts > 4, "Proteans 2")
             .DeactivateOnExit<P6WaveCannonProteans>();
         ActorCastEnd(id + 0x103, _module.BossP6, 5.9f, true)
             .ActivateOnEnter<P6WaveCannonWildCharge>();
         ComponentCondition<P6WaveCannonWildCharge>(id + 0x104, 0.4f, comp => comp.NumCasts > 0, "Wild charge")
             .DeactivateOnExit<P6WaveCannonWildCharge>()
+            .DeactivateOnExit<P6WaveCannonSpots1>()
             .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
     }
 
     private void P6CosmoArrowWaveCannon(uint id, float delay)
     {
         ActorCast(id, _module.BossP6, AID.CosmoArrow, delay, 6, true)
-            .ActivateOnEnter<P6CosmoArrow>();
+            .ActivateOnEnter<P6CosmoArrow>()
+            .ActivateOnEnter<P6WaveCannonSpots2>();
         ComponentCondition<P6CosmoArrow>(id + 0x10, 2, comp => comp.NumCasts > 0, "Exasquare 1");
         ComponentCondition<P6CosmoArrow>(id + 0x11, 2, comp => comp.NumCasts >= 10, "Exasquare 2");
         ComponentCondition<P6CosmoArrow>(id + 0x12, 2, comp => comp.NumCasts >= 18, "Exasquare 3");
@@ -561,6 +564,7 @@ class TOPStates : StateMachineBuilder
         ComponentCondition<P6WaveCannonWildCharge>(id + 0x104, 0.4f, comp => comp.NumCasts > 0, "Wild charge")
             .DeactivateOnExit<P6WaveCannonWildCharge>()
             .DeactivateOnExit<P6CosmoArrow>()
+            .DeactivateOnExit<P6WaveCannonSpots2>()
             .SetHint(StateMachine.StateHint.Raidwide | StateMachine.StateHint.Tankbuster);
     }
 

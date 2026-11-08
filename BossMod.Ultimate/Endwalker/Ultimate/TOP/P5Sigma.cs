@@ -245,16 +245,17 @@ class P5Sigma(BossModule module) : BossComponent(module)
         var north = _waveCannonNorthDir.Normalized();
         if (_numWaveCannonTargets < 6)
         {
-            // two rows between the fists, circle-triangle-square-cross from left
-            var left = p.Order switch
+            // two rows between the fists, circle-triangle-square-cross from left; where KR parties actually stand when the markers appear
+            // (ACT logs, medians of 184 pulls from 2023 and 21 from 2026); the rows are ~3y apart, which is what tells upper from lower later
+            var (front, back) = p.Order switch
             {
-                1 => 4.3f,
-                2 => 1.4f,
-                3 => -1.5f,
-                _ => -4.3f
+                1 => (4.7f, 5.2f),
+                2 => (1.7f, 1.9f),
+                3 => (-1.7f, -1.9f),
+                _ => (-4.7f, -5.2f)
             };
-            yield return left * north.OrthoL() - 4.4f * north;
-            yield return left * north.OrthoL() - 6.9f * north;
+            yield return front * north.OrthoL() - 6.9f * north;
+            yield return back * north.OrthoL() - 10 * north;
             yield break;
         }
 
@@ -605,8 +606,9 @@ class P5SigmaNearDistantWorld(BossModule module) : P5NearDistantWorld(module)
         List<(WPos, Sign[])> spots =
         [
             (spot(south, 19), [Sign.Attack1]),
-            (spot(arm + sign * 13.5f.Degrees(), 19), [Sign.Attack2]),
-            (spot(arm - sign * 13.5f.Degrees(), 19), [Sign.Attack3]),
+            // 12 degrees off the arm: between the diagram's 13.5 and where people actually stand (2023 ACT logs: +10 / -11)
+            (spot(arm + sign * 12.Degrees(), 19), [Sign.Attack2]),
+            (spot(arm - sign * 12.Degrees(), 19), [Sign.Attack3]),
         ];
         if (_dynamisStacks[slot])
         {
