@@ -153,12 +153,6 @@ class SwordDance(BossModule module) : Components.GenericAOEs(module, AID.SwordDa
         if (spell.Action == WatchedAction && _predicted.Count > 0)
             _predicted.RemoveAt(0);
     }
-
-    public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
-    {
-        foreach (var aoe in ActiveAOEs(slot, actor))
-            hints.AddForbiddenZone(aoe.Distance, aoe.Activation);
-    }
 }
 
 class Pierce(BossModule module) : Components.StandardAOEs(module, AID.Pierce, 5);
@@ -200,10 +194,10 @@ class Steelsbreath(BossModule module) : Components.Knockback(module, AID.Steelsb
         var orig = kb0.Origin;
         var goal = srcs.MoveNext() ? ShapeDistance.InvertedCircle(srcs.Current.Origin, 6) : ShapeDistance.InvertedCircle(Arena.Center, 24);
 
-        hints.AddForbiddenZone(Sdf.Discrete(p =>
+        hints.AddForbiddenZone(Sdf.DiscreteSingle(p =>
         {
             var off = (p - orig).Normalized() * 24;
-            return goal(p + off) < 0;
+            return goal(new(p + off))[0] < 0;
         }), kb0.Activation);
     }
 }

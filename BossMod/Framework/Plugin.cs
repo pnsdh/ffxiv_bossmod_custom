@@ -108,6 +108,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud), IA
             scope.Resolve<ModulePackService>().ReloadAll([], [Assembly.GetExecutingAssembly()]);
 
             Service.Camera = scope.Resolve<ICamera>();
+            Service.Shadowcast = scope.Resolve<IShadowcast>();
 
             Service.WindowSystem = scope.Resolve<IWindowSystemFactory>().Create("vbm");
         });
@@ -125,6 +126,7 @@ public class Plugin(IDalamudPluginInterface dalamud) : HostedPlugin(dalamud), IA
         containerBuilder.RegisterSingletonSelfAndInterfaces<WorldStateGameSync>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<HintExecutor>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<Camera>();
+        containerBuilder.RegisterSingletonSelfAndInterfaces<Shadowcast>();
 
         containerBuilder.RegisterSingletonSelfAndInterfaces<AutoBitmapService>();
         containerBuilder.RegisterSingletonSelfAndInterfaces<PingService>();

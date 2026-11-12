@@ -82,6 +82,8 @@ public enum AID : uint
     Unknown3 = 47046, // Boss->self, no cast, single-target
     PhaseChange1 = 48085, // Boss->self, no cast, single-target, phase 2 starts ~25s later
     PhaseChange2 = 48332, // Boss->self, no cast, single-target, phase 2 starts ~25s later
+    PhaseChange3 = 48086, // Boss->self, no cast, single-target, phase 2 starts ~25s later
+    PhaseChange4 = 48087, // Boss->self, no cast, single-target, phase 2 starts ~25s later
 }
 
 public enum SID : uint
@@ -117,6 +119,12 @@ class SerpentineScourge(BossModule module) : Components.GenericAOEs(module, AID.
     {
         if (_aoe is { } aoe)
             yield return aoe;
+    }
+
+    public override void Update()
+    {
+        if (_aoe is { } aoe && WorldState.CurrentTime > aoe.Activation.AddSeconds(1))
+            _aoe = null;
     }
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
@@ -348,9 +356,6 @@ class FleshKnockback(BossModule module) : Components.Knockback(module, AID.Shock
             yield return new(actor.Position, Distance, _activation[slot], null, actor.Rotation + (_back[slot] ? 180.Degrees() : default), Kind.DirForward);
     }
 
-    public override bool DestinationUnsafe(int slot, Actor actor, WPos pos)
-        => base.DestinationUnsafe(slot, actor, pos) || Module.FindComponent<Burst>()?.AOEs.Any(a => a.Check(pos)) == true;
-
     public override void AddAIHints(int slot, Actor actor, PartyRolesConfig.Assignment assignment, AIHints hints)
     {
         if (slot >= _activation.Length || _activation[slot] == default || IsImmune(slot, _activation[slot]))
@@ -425,8 +430,8 @@ class MindlessFleshWide(BossModule module) : Components.StandardAOEs(module, AID
         base.AddAIHints(slot, actor, assignment, hints);
         foreach (var c in Casters)
         {
-            var inside = ShapeDistance.Rect(c.CastInfo!.LocXZ, c.CastInfo.Rotation, 30, 0, 17.5f);
-            hints.GoalZones.Add(p => inside(p) > 0 ? 1 : 0);
+            var inside = ShapeDistance.Rect(c.CastInfo!.LocXZ, c.CastInfo.Rotation, 30, 0, 17.5f).Discretize().Inverted();
+            hints.GoalZones.AddSimple(inside, 1);
         }
     }
 }
@@ -518,7 +523,7 @@ class PhaseChange(BossModule module) : BossComponent(module)
 
     public override void OnEventCast(Actor caster, ActorCastEvent spell)
     {
-        if ((AID)spell.Action.ID is AID.PhaseChange1 or AID.PhaseChange2)
+        if ((AID)spell.Action.ID is AID.PhaseChange1 or AID.PhaseChange2 or AID.PhaseChange3 or AID.PhaseChange4)
             Done = true;
     }
 }
