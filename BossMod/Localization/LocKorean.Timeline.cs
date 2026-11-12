@@ -1765,5 +1765,28 @@ static partial class LocKorean
         ("Hail 1", "우박 1"),
         ("Hail 2", "우박 2"),
         ("Car {0}", "{0}호차"),
+
+        // BossMod.Modules: T07Zeromus, A21-A24 (Syrcus Tower), T09Seiryu (v7.5.8.0+)
+        ("Line stack resolve", "직선 쉐어 처리"),
+        ("AOEs at tower", "탑 위치 장판"),
+        ("Black hole", "블랙홀"),
+        ("Ancient flare", "에인션트 플레어"),
+        ("Auras", "오라 발사"),
+        ("Toads", "두꺼비"),
+        ("Cages", "얼음감옥"),
+        ("Curtain call", "대단원의 열광"),
+        ("Mines", "마과학 폭뢰"),
+        ("Mines resolve", "마과학 폭뢰 처리"),
+        ("Quaga", "에인션트 퀘이가"),
+        ("Grid start", "구자호신법 시작"),
+        ("Summon", "사역귀 소환"),
+        ("Grid", "구자호신법"),
+        ("Line stack + charges", "직선 쉐어 + 돌진"),
+        ("Adds end", "쫄 끝"),
+        ("Boss returns", "보스 복귀"),
+        ("Line stack x2", "직선 쉐어 x2"),
+        ("Fist", "압살장"),
+        ("Center + knockback", "중앙 + 넉백"),
+        ("Serpent Ascending", "승천하는 용"),
     ];
 }

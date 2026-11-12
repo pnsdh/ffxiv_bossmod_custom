@@ -233,5 +233,8 @@ static partial class LocKorean
         // BossMod.Modules/Global/DeepDungeon/Config.cs (v7.5.7.12+)
         ("Avoid known trap locations sourced from Palantir data. (Traps revealed by a Pomander of Sight will always be avoided.)", "Palantir 데이터의 알려진 함정 위치를 피합니다. (마토기: 사이트로로 드러난 함정은 항상 피합니다.)"),
         ("Open chests", "보물상자 열기"),
+
+        // BossMod.Modules/Global/DeepDungeon/Config.cs (v7.5.8.0+)
+        ("This feature is experimental. In certain cases, it may not be able to find a safe zone for you. Keep an eye on your character.", "실험적인 기능입니다. 경우에 따라 안전한 위치를 찾지 못할 수 있으니 캐릭터를 계속 지켜보세요."),
     ];
 }

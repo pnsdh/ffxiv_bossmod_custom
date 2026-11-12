@@ -1228,5 +1228,21 @@ static partial class LocKorean
         ("Let's Pose will hit you!", "레츠 포즈!에 맞습니다!"),
         ("Raidwide x{0}", "전체 공격 x{0}"),
         ("P2HugNael mode: {0}", "P2HugNael 방식: {0}"),
+
+        // BossMod.Modules: T07Zeromus, Darkscale1, A21-A24 (Syrcus Tower) (v7.5.8.0+)
+        ("Heal doomed players to full!", "죽음의 선고 대상자를 HP 가득 회복하세요!"),
+        ("Get healed to full!", "HP를 가득 회복 받으세요!"),
+        ("Avoid placed meteors!", "놓인 메테오 피하기!"),
+        ("GTFO from black hole!", "블랙홀에서 나가세요!"),
+        ("Vedrfolnir HP: {0}% (minimum 20)", "베드르폴니르 HP: {0}% (최소 20)"),
+        ("Stand in a puddle!", "웅덩이 안에 서세요!"),
+        ("GTFO from fire soul!", "화염의 영혼에게서 떨어지세요!"),
+        ("Bound by a wright until it dies!", "알라그 태엽장인이 죽을 때까지 묶여 있습니다!"),
+        ("Kill the wright holding a player", "플레이어를 붙잡은 알라그 태엽장인 처치"),
+        ("You will be frozen into an ice cage!", "얼음감옥에 갇힙니다!"),
+        ("Toad breath melts a cage, leave one for curtain call", "두꺼비 파이어로 얼음감옥을 녹일 수 있음, 대단원의 열광용으로 하나 남기기"),
+        ("Stand on a levitation pad!", "레비테트 발판 위에 서세요!"),
+        ("Stack for imperium to get levitation!", "절대권력 쉐어를 맞아 레비테트 받기!"),
+        ("Kill the starfall and stonefall circles!", "별똥별·별조각 마법 문양 처치!"),
     ];
 }

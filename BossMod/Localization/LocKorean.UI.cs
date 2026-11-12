@@ -428,5 +428,26 @@ static partial class LocKorean
         ("Ring color: rear", "고리 색상: 후방"),
         ("Ring color: flank", "고리 색상: 측면"),
         ("Ring color: front", "고리 색상: 전방"),
+
+        // BossMod/Config/OverlayConfig.cs (in-game overlay, v7.5.8.0+)
+        ("In-game overlay", "게임 화면 오버레이"),
+        ("Overlay", "오버레이"),
+        ("In combat", "전투 중"),
+        ("In duty", "임무 중"),
+        ("In duty or combat", "임무 중 또는 전투 중"),
+        ("In duty and combat", "임무 중이면서 전투 중"),
+        ("Show player hitbox pixel", "내 히트박스 중심점 표시"),
+        ("Indicator size", "표시 크기"),
+        ("As melee or tank", "근딜·탱커일 때"),
+        ("Always", "항상"),
+        ("Show target range indicator", "대상 사거리 표시"),
+        ("As tank", "탱커일 때"),
+        ("Show enemy autoattack range indicator", "적 평타 사거리 표시"),
+        ("Pixel color", "중심점 색상"),
+        ("Default ring color", "고리 색상: 기본"),
+        ("Positional (imminent, correct)", "포지셔널 (곧 사용, 맞는 위치)"),
+        ("Positional (imminent, incorrect)", "포지셔널 (곧 사용, 틀린 위치)"),
+        ("Positional (future, correct)", "포지셔널 (나중 사용, 맞는 위치)"),
+        ("Positional (future, incorrect)", "포지셔널 (나중 사용, 틀린 위치)"),
     ];
 }
