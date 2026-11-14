@@ -17,7 +17,7 @@ public sealed class AIHintsBuilder : IDisposable
     private readonly BossModuleManager _bmm;
     private readonly ZoneModuleManager _zmm;
     private readonly EventSubscriptions _subscriptions;
-    private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge)> _activeAOEs = [];
+    private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape, bool IsCharge, bool IsLyingAboutTarget)> _activeAOEs = [];
     private readonly Dictionary<ulong, (Actor Caster, Actor? Target, AOEShape Shape)> _activeGazes = [];
     private readonly List<Actor> _invincible = [];
     private ArenaBoundsCircle? _activeFateBounds;
@@ -25,6 +25,11 @@ public sealed class AIHintsBuilder : IDisposable
 
     private float ConeFallback => Math.Clamp(_hintConfig.ConeFallbackAngle, 1, 180);
 
+    // invincibility statuses
+    // `f` refers to the Flags column, only specified if nonzero
+    // `mod` refers to the ParamModifier column
+    // `???` means the status appears to have no attributes that distinguish it from other buffs unrelated to invincibility (this is why the list is incomplete, the majority of these have no useful data)
+    // invincibility can also be purely serverside, e.g. garuda normal
     private static readonly List<uint> InvincibleStatuses =
     [
         151, // stoneskin f=12
@@ -206,11 +211,11 @@ public sealed class AIHintsBuilder : IDisposable
             if (aoe.Caster.IsAlly)
                 continue;
 
-            if (aoe.Caster.CastInfo?.TargetID == player.InstanceID)
+            if (aoe.Caster.CastInfo?.TargetID == player.InstanceID && !aoe.IsLyingAboutTarget)
                 continue;
 
             var targetPos = aoe.Caster.CastInfo!.LocXZ;
-            if (aoe.Target is { } tar && tar != aoe.Caster)
+            if (!aoe.IsLyingAboutTarget && aoe.Target is { } tar && tar != aoe.Caster)
                 targetPos = tar.Position;
             var rot = aoe.Caster.CastInfo!.Rotation;
             var finishAt = _ws.FutureTime(aoe.Caster.CastInfo.RemainingTime);
@@ -269,7 +274,7 @@ public sealed class AIHintsBuilder : IDisposable
             return;
         }
         var target = _ws.Actors.Find(actor.CastInfo.TargetID);
-        _activeAOEs[actor.InstanceID] = (actor, target, shape, data.CastType == 8);
+        _activeAOEs[actor.InstanceID] = (actor, target, shape, data.CastType == 8, data.RowId == 12218);
     }
 
     private void OnCastFinished(Actor actor)
