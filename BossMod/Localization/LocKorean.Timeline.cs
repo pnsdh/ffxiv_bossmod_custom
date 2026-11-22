@@ -1788,5 +1788,17 @@ static partial class LocKorean
         ("Fist", "압살장"),
         ("Center + knockback", "중앙 + 넉백"),
         ("Serpent Ascending", "승천하는 용"),
+
+        // BossMod.Modules: Un2Shinryu, AFatherFirst, A23Construct7 (v7.5.8.2+)
+        ("Puddles -or- Doubling", "장판 -또는- 환영 생성"),
+        ("Raidwide + tiles", "전체 공격 + 타일"),
+        ("Icicles", "고드름"),
+        ("Raidwide (water)", "전체 공격 (물)"),
+        ("Raidwide + thin ice", "전체 공격 + 얼음 바닥"),
+        ("Reiryu (heal)", "영룡 (회복)"),
+        ("Gyre charge", "회전 돌진"),
+        ("Cocoon markers", "빛의 고치 징"),
+        ("Shatter", "파쇄"),
+        ("Minibots appear", "소형 로봇 등장"),
     ];
 }

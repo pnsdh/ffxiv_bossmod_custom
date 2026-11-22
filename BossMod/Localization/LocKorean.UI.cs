@@ -449,5 +449,9 @@ static partial class LocKorean
         ("Positional (imminent, incorrect)", "포지셔널 (곧 사용, 틀린 위치)"),
         ("Positional (future, correct)", "포지셔널 (나중 사용, 맞는 위치)"),
         ("Positional (future, incorrect)", "포지셔널 (나중 사용, 틀린 위치)"),
+
+        // BossMod/Services/SlashCommandService.cs (v7.5.8.2+)
+        ("set specified player or slot as target for the FollowSlot module", "지정한 플레이어 또는 슬롯을 FollowSlot 모듈의 대상으로 설정"),
+        ("reset FollowSlot module behavior to default", "FollowSlot 모듈 동작을 기본값으로 되돌리기"),
     ];
 }
